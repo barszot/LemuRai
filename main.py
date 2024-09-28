@@ -30,7 +30,7 @@ lemur_image = pygame.image.load("icons/lemur.png")
 book_image = pygame.image.load("icons/book.png")
 skull_image = pygame.image.load("icons/skull.png")
 bacteria_image = pygame.image.load("icons/bacteria.png")
-brain_image = pygame.image.load("icons/gitbrain.png")
+brain_image = pygame.image.load("icons/brain.png")
 
 
 def render_icon(icon, icon_position, count):
