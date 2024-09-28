@@ -1,5 +1,4 @@
 pygame
-sys
 langchain
 langchain_ollama
 langchain_core

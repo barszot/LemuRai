@@ -20,6 +20,7 @@ class Population:
         self.convalescents = 0
         self.sick = 0
         self.is_epidemy = False
+        self.is_plague = False
         self.beta = 0
         self.gamma = 0
         self.lethality = 0.3
@@ -67,7 +68,9 @@ class Population:
         return self.is_epidemy
 
     def plagueNow(self, defensebility):
-        self.population -= int((1-defensebility)*self.population)
+        self.dead = int((1-defensebility)*self.population)
+        self.population -= self.dead
+        self.is_plague = True
 
     def populationGrowth(self, culturality):
         if not self.is_epidemy:
@@ -93,20 +96,22 @@ class State:
         self.time_from_last_epidemy = 0
 
     def moneyProfit(self):
-        self.coins += round(self.tech/3 + self.culture/4 + (self.tech*self.culture)/6)*(self.population+1)
+        self.coins += round(self.tech/3 + self.culture/4 + (self.tech*self.culture)/6)*(self.population.population+1)
 
     def spendMoneyOn(self, donations):
-        self.coins -= int(donations["technology"] - donations["culture"] - donations["defense"] - donations["hospital"])
+        self.coins -= int(donations["technologia"] - donations["kultura"] - donations["obrona"] - donations["szpitale"])
         decay = 0.7
-        self.culture += decay*self.culture + int(donations["culture"] - 30)
-        self.technology += decay*self.technology + int(donations["technology"] - 30)
-        self.defense += decay*self.defense + int(donations["defense"] - 30)
-        self.hospitals += decay*self.hospitals + int(donations["hospitals"] - 30)
+        self.culture += max(0, decay*self.culture) + int(donations["kultura"] - 30)
+        self.technology += max(0, decay*self.technology) + int(donations["technologia"] - 30)
+        self.defense += max(0, decay*self.defense) + int(donations["obrona"] - 30)
+        self.hospitals += max(0, decay*self.hospitals) + int(donations["szpitale"] - 30)
     
     def nextStep(self, donations):
         self.spendMoneyOn(donations)
         self.moneyProfit()
         culturality = max(0.07, max(0,self.culture-4)/15)
+        self.population.dead = 0
+        self.population.is_plague = False
         if(not self.population.getIsEpidemy()):
             probablity_of_plague = min(0.4, max(0, self.time_from_last_plague-7)/20)
             if(random.random() < probablity_of_plague):
@@ -134,8 +139,19 @@ class State:
             self.time_from_last_epidemy += 1
             self.population.populationGrowth(culturality)
 
-
-
+    def __str__(self):
+        dict = {
+            "pieniądze": self.coins,
+            "populacja": self.population.population,
+            "czy-teraz-jest-epidemia": "prawda" if self.population.is_epidemy else "fałsz",
+            "czy-teraz-jest-klęska-żywiołowa": "prawda" if self.population.is_plague else "fałsz",
+            "jaki-odsetek-populacji-umarł": f"{int(self.population.dead/self.population.population*100)}%",
+            "punkty-kultury": self.culture,
+            "punkty-technologii": self.technology,
+            "punkty-szpitalne": self.hospitals,
+            "punkty-ochrony": self.defense
+        }
+        return str(dict)
 
         
 
