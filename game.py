@@ -1,3 +1,5 @@
+import random
+
 class KingsDecision:
     def __init__(self, description, people_reaction, how_wise):
         self.description = description
@@ -18,25 +20,38 @@ class Population:
         self.convalescents = 0
         self.sick = 0
         self.is_epidemy = False
+        self.beta = 0
+        self.gamma = 0
+        self.lethality = 0.3
+        self.reset_epidemy = False
+        self.dead = 0
 
     def reset(self):
         self.healthy = self.population
         self.convalescents = 0
         self.sick = 0
+        self.dead = 0
 
-    def startEpidemy(self):
+    def startEpidemy(self,  beta, gamma, lethality=0.3):
         self.healthy -= 5
         self.sick += 5
         self.is_epidemy = True
+        self.beta = beta
+        self.gamma = gamma
+        self.lethality = lethality
 
-    def moddedSIR(self, beta, gamma, lethality=0.3):
+    def moddedSIR(self):
+        beta = self.beta
+        gamma = self.gamma
+        lethality = self.lethality
         if(self.sick == 0):
             self.is_epidemy = False
+            self.reset_epidemy = True
             return
         # Oblicz nowe zakażenia i wyzdrowienia
-        dead = round(lethality*self.sick)
-        self.sick -= dead
-        self.population -= dead
+        self.dead = round(lethality*self.sick)
+        self.sick -= self.dead
+        self.population -= self.dead
         new_infected = round(beta * self.healthy * self.sick / self.population)
         new_recovered = round(gamma * self.sick)
 
@@ -52,46 +67,79 @@ class Population:
         return self.is_epidemy
 
     def plagueNow(self, defensebility):
-        self.population -= int(defensebility*self.population)
+        self.population -= int((1-defensebility)*self.population)
 
     def populationGrowth(self, culturality):
         if not self.is_epidemy:
-            self.population += culturality*self.population
+            self.population += round(culturality*self.population)
             pass
 
 
 class State:
 
     def __init__(self, start_population=10):
-        self.population = start_population
+        self.population = Population(start_population)
         self.history_of_decisions = []
         self.history_of_events = []
 
-        self.hospitals = 10
-        self.culture = 10
-        self.defense = 10
-        self.technology = 0
-        self.devastation_level = 0.0
+        self.hospitals = 15
+        self.culture = 15
+        self.defense = 15
+        self.technology = 15
 
         self.coins = 100
-        self.situation = """
-            hello, fdsagifdaoiad
-        """
+
         self.time_from_last_plague = 0
         self.time_from_last_epidemy = 0
 
     def moneyProfit(self):
-        return (self.tech/3 + self.culture/4 + (self.tech*self.culture)/6)*self.population
+        self.coins += round(self.tech/3 + self.culture/4 + (self.tech*self.culture)/6)*(self.population+1)
 
     def spendMoneyOn(self, donations):
         self.coins -= int(donations["technology"] - donations["culture"] - donations["defense"] - donations["hospital"])
-        self.culture += int(donations["culture"] - 30)
-        self.technology += int(donations["technology"] - 30)
-        self.defense += int(donations["defense"] - 30)
-        self.hospitals += int(donations["hospitals"] - 30)
+        decay = 0.7
+        self.culture += decay*self.culture + int(donations["culture"] - 30)
+        self.technology += decay*self.technology + int(donations["technology"] - 30)
+        self.defense += decay*self.defense + int(donations["defense"] - 30)
+        self.hospitals += decay*self.hospitals + int(donations["hospitals"] - 30)
     
-    def nextStep(self):
-        pass
+    def nextStep(self, donations):
+        self.spendMoneyOn(donations)
+        self.moneyProfit()
+        culturality = max(0.07, max(0,self.culture-4)/15)
+        if(not self.population.getIsEpidemy()):
+            probablity_of_plague = min(0.4, max(0, self.time_from_last_plague-7)/20)
+            if(random.random() < probablity_of_plague):
+                defensibility = max(1, min(0, self.defense - 5)/20)
+                self.population.plagueNow(defensibility)
+                self.time_from_last_plague = 0
+                self.time_from_last_epidemy += 1
+            else:
+                self.time_from_last_plague += 1 
+                probablity_of_epidemy = min(0.3, max(0, self.time_from_last_plague-8)/20)
+                if (random.random() < probablity_of_epidemy):
+                    beta = 0.3
+                    gamma = max(1, min(0, self.hospitals - 5)/20)
+                    self.population.startEpidemy(beta, gamma)
+                else:
+                    self.population.populationGrowth(culturality)
+                    self.time_from_last_epidemy += 1
+
+        elif(self.population.reset_epidemy):
+            self.time_from_last_epidemy = 0
+            self.population.reset_epidemy = False
+            self.time_from_last_plague += 1
+        else:
+            self.time_from_last_plague += 1
+            self.time_from_last_epidemy += 1
+            self.population.populationGrowth(culturality)
+
+
+
+
+        
+
+
     
 
 
