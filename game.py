@@ -96,15 +96,15 @@ class State:
         self.time_from_last_epidemy = 0
 
     def moneyProfit(self):
-        self.coins += round(self.tech/3 + self.culture/4 + (self.tech*self.culture)/6)*(self.population.population+1)
+        self.coins += round(self.technology/3 + self.culture/4 + (self.technology*self.culture)/6)*(self.population.population+1)
 
     def spendMoneyOn(self, donations):
-        self.coins -= int(donations["technologia"] - donations["kultura"] - donations["obrona"] - donations["szpitale"])
+        self.coins -= int(donations["technologia"] - donations["kultura"] - donations["ochrona"] - donations["szpitale"])
         decay = 0.7
-        self.culture += max(0, decay*self.culture) + int(donations["kultura"] - 30)
-        self.technology += max(0, decay*self.technology) + int(donations["technologia"] - 30)
-        self.defense += max(0, decay*self.defense) + int(donations["obrona"] - 30)
-        self.hospitals += max(0, decay*self.hospitals) + int(donations["szpitale"] - 30)
+        self.culture = max(0, self.culture+ max(0, decay*self.culture) + int(donations["kultura"] - 30))
+        self.technology =max(0, self.technology+ max(0, decay*self.technology) + int(donations["technologia"] - 30))
+        self.defense = max(0, self.defense+ max(0, decay*self.defense) + int(donations["ochrona"] - 30))
+        self.hospitals = max(0, self.hospitals + max(0, decay*self.hospitals) + int(donations["szpitale"] - 30))
     
     def nextStep(self, donations):
         self.spendMoneyOn(donations)
