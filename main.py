@@ -15,9 +15,17 @@ UPDATE_INTERVAL = 1000  # Time in milliseconds (1 second)
 # Set up the display
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Pygame Window with Text Field")
+# Load the image
+lemur_image = pygame.image.load("icons/lemur.png")
+
+# Resize the image to 32x32 pixels
+lemur_image = pygame.transform.scale(lemur_image, (32, 32))
+
+# Set the window icon
+pygame.display.set_icon(lemur_image)
+
 
 # Load the images
-lemur_image = pygame.image.load("icons/lemur.png")
 book_image = pygame.image.load("icons/book.png")
 skull_image = pygame.image.load("icons/skull.png")
 bacteria_image = pygame.image.load("icons/bacteria.png")
