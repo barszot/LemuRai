@@ -11,7 +11,9 @@ BLACK = (0, 0, 0)
 BLUE = (0, 100, 255)
 FONT_SIZE = 32
 UPDATE_INTERVAL = 1000  # Time in milliseconds (1 second)
-BACKSPACE_HOLD_TIME = 300  # Time in milliseconds to hold backspace to start rapid delete
+BACKSPACE_HOLD_TIME = (
+    300  # Time in milliseconds to hold backspace to start rapid delete
+)
 BACKSPACE_REPEAT_INTERVAL = 100  # Time in milliseconds for rapid delete
 
 # Set up the display
@@ -48,6 +50,7 @@ last_update_time = 0
 
 # Button position and size
 button_rect = pygame.Rect(700, 560, 100, 40)
+right_panel = pygame.Rect(575, 0, 225, 500)
 
 # Backspace tracking
 backspace_pressed = False
@@ -55,9 +58,11 @@ backspace_start_time = 0
 backspace_last_delete_time = 0  # Track the last time a character was deleted
 backspace_initial_press = True  # To check if it's the first press of backspace
 
+
 def get_external_text():
     """Simulates getting text from an external source."""
     return "Hello from external function!"
+
 
 def render_icon(icon, icon_position, count):
     small_image = pygame.transform.scale(icon, (30, 30))
@@ -65,11 +70,13 @@ def render_icon(icon, icon_position, count):
     number_surface = font.render(str(count), True, WHITE)
     screen.blit(number_surface, (icon_position[0] + 40, icon_position[1] + 5))
 
+
 def render_text_field():
     """Render the text input field."""
     pygame.draw.rect(screen, WHITE, (0, HEIGHT - 100, WIDTH, 100), 2)
     text_surface = font.render(input_text, True, WHITE)
     screen.blit(text_surface, (35, 505))
+
 
 def render_button():
     """Render the submit button."""
@@ -78,11 +85,13 @@ def render_button():
     button_text = small_font.render("Zatwierdź", True, WHITE)
     screen.blit(button_text, (button_rect.x + 11, button_rect.y + 11))
 
+
 def render_external_text_field():
     """Render the external text field."""
     pygame.draw.rect(screen, WHITE, (30, 400, 400, 40), 2)
     external_text_surface = font.render(external_text, True, WHITE)
     screen.blit(external_text_surface, (35, 405))
+
 
 def update_external_text_if_needed(current_time):
     """Update external text every second."""
@@ -91,11 +100,13 @@ def update_external_text_if_needed(current_time):
         external_text = get_external_text()  # Update external text every second
         last_update_time = current_time
 
+
 def handle_submit():
     """Handle the text submission."""
     global input_text
     print(f"Text entered: {input_text}")
     input_text = ""  # Clear input after submission
+
 
 # Main loop
 running = True
@@ -111,7 +122,9 @@ while running:
                         input_text = input_text[:-1]  # Immediately remove one character
                         backspace_initial_press = False  # Set to false to indicate we have processed the initial press
                     backspace_pressed = True  # Start tracking backspace
-                    backspace_last_delete_time = pygame.time.get_ticks()  # Record the time backspace is pressed
+                    backspace_last_delete_time = (
+                        pygame.time.get_ticks()
+                    )  # Record the time backspace is pressed
                 elif event.key == pygame.K_RETURN:
                     handle_submit()  # Submit text on Enter
                 else:
@@ -135,10 +148,14 @@ while running:
     if backspace_pressed:
         # Start rapid delete after a certain delay
         if current_time - backspace_last_delete_time > BACKSPACE_HOLD_TIME:
-            if current_time - backspace_last_delete_time > BACKSPACE_REPEAT_INTERVAL:  # If it's time to delete again
+            if (
+                current_time - backspace_last_delete_time > BACKSPACE_REPEAT_INTERVAL
+            ):  # If it's time to delete again
                 if len(input_text) > 0:  # Check if there's anything to delete
                     input_text = input_text[:-1]  # Remove the last character
-                    backspace_last_delete_time = current_time  # Reset the time for next delete
+                    backspace_last_delete_time = (
+                        current_time  # Reset the time for next delete
+                    )
 
     # Fill the screen with black
     screen.fill(BLACK)
@@ -158,6 +175,9 @@ while running:
 
     # Render the submit button
     render_button()
+
+    # Render the right panel
+    pygame.draw.rect(screen, WHITE, right_panel, 2)
 
     # Update the display
     pygame.display.flip()
