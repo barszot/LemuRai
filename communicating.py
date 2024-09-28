@@ -59,6 +59,8 @@ class Communicator:
         
         self.people_message = SystemMessage(content="""
                 Jesteś państwem lemurów, które reaguje na decyzje króla. Jesteś ludem! Jesteś poddanymi!
+                Pamiętaj że poddani to NIE JEST doradca króla. Poddani to oddzielny, "wieloosoby" asystent,
+                niepowiązany z doradcą
                 """ + rules)
 
         self.calculator_message = SystemMessage(content=f"""
@@ -79,32 +81,11 @@ class Communicator:
         self.model = ChatOllama(model="llama3.1:8b", base_url="http://10.8.0.1:8080")
 
     def startGame(self):
-        decision = ""
-        expsense = {}
-        while True:
-            decision = input("Werdykt: ")
-            response = self.model.invoke([self.calculator_message, HumanMessage(content=decision)])
-            expense = json.loads(response.content)
-            print(response.content)
-            if (not all(value >= 0 for value in expense.values())):
-                print("UWAGA: Nie wolno wydać ujemnej ilości pieniędzy na jakąkolwiek rzecz!")
-            else:
-                expense_sum = 0
-                for key in expense:
-                    expense[key] = int(expense[key])
-                    expense_sum += expense[key]
-                if expense_sum > self.state.coins:
-                    print("UWAGA: Nie stać cię na tak duże wydatki")
-                    continue
-                else:
-                    break
-        response = self.model.invoke([self.adviser_message, HumanMessage(content=decision+"\nSpis wydatków\n"+str(expense)+"\nObecny stan gry:\n"+str(self.state))])
-        
-        print(response.content)
-        
-        changeDecision = input("Czy chcesz zmienić decyzję? (wpisz 'tak' lub 'nie'): ")
-        
-        if (changeDecision.strip().lower() == "tak"):
+        tour = 0
+        while self.state.population:
+            tour+=1
+            decision = ""
+            expsense = {}
             while True:
                 decision = input("Werdykt: ")
                 response = self.model.invoke([self.calculator_message, HumanMessage(content=decision)])
@@ -122,12 +103,37 @@ class Communicator:
                         continue
                     else:
                         break
-        king_response = self.model.invoke([self.king_message, HumanMessage(content="Wyraź decyzję gracza (poniżej) swoimi słowami\n" + decision)])
-        print(king_response.content)
-        self.state.nextStep(expense)
-        print(self.state)
-        people_response = self.model.invoke([self.people_message, HumanMessage(content="Zarządzenie króla:\n"+king_response.content+str(self.state))])
-        print(people_response.content)
+            response = self.model.invoke([self.adviser_message, HumanMessage(content=decision+"\nSpis wydatków\n"+str(expense)+"\nObecny stan gry:\n"+str(self.state))])
+            
+            print(response.content)
+            
+            changeDecision = input("Czy chcesz zmienić decyzję? (wpisz 'tak' lub 'nie'): ")
+            
+            if (changeDecision.strip().lower() == "tak"):
+                while True:
+                    decision = input("Werdykt: ")
+                    response = self.model.invoke([self.calculator_message, HumanMessage(content=decision)])
+                    expense = json.loads(response.content)
+                    print(response.content)
+                    if (not all(value >= 0 for value in expense.values())):
+                        print("UWAGA: Nie wolno wydać ujemnej ilości pieniędzy na jakąkolwiek rzecz!")
+                    else:
+                        expense_sum = 0
+                        for key in expense:
+                            expense[key] = int(expense[key])
+                            expense_sum += expense[key]
+                        if expense_sum > self.state.coins:
+                            print("UWAGA: Nie stać cię na tak duże wydatki")
+                            continue
+                        else:
+                            break
+            king_response = self.model.invoke([self.king_message, HumanMessage(content="Wyraź decyzję gracza (poniżej) swoimi słowami\n" + decision)])
+            print("KRÓL:\n"+king_response.content)
+            self.state.nextStep(expense)
+            print(self.state)
+            people_response = self.model.invoke([self.people_message, HumanMessage(content="Zarządzenie króla:\n"+king_response.content+str(self.state))])
+            print("PODDDANI:\n"+people_response.content)
+            self.state.printStats()
 
 if __name__ == "__main__":
     com = Communicator()

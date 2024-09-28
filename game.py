@@ -99,12 +99,23 @@ class State:
         self.coins += round(self.technology/3 + self.culture/4 + (self.technology*self.culture)/6)*(self.population.population+1)
 
     def spendMoneyOn(self, donations):
-        self.coins -= int(donations["technologia"] - donations["kultura"] - donations["ochrona"] - donations["szpitale"])
+        # Użycie get() z wartością domyślną 0 dla każdego klucza
+        tech = donations.get("technologia", 0)
+        kultura = donations.get("kultura", 0)
+        ochrona = donations.get("ochrona", 0)
+        szpitale = donations.get("szpitale", 0)
+        
+        # Obliczenie wydatków i aktualizacja coins
+        self.coins -= int(tech - kultura - ochrona - szpitale)
+
         decay = 0.7
-        self.culture = max(0, self.culture+ max(0, decay*self.culture) + int(donations["kultura"] - 30))
-        self.technology =max(0, self.technology+ max(0, decay*self.technology) + int(donations["technologia"] - 30))
-        self.defense = max(0, self.defense+ max(0, decay*self.defense) + int(donations["ochrona"] - 30))
-        self.hospitals = max(0, self.hospitals + max(0, decay*self.hospitals) + int(donations["szpitale"] - 30))
+        
+        # Aktualizacja wartości z zachowaniem minimum 0
+        self.culture = max(0, self.culture + max(0, decay * self.culture) + int(kultura - 30))
+        self.technology = max(0, self.technology + max(0, decay * self.technology) + int(tech - 30))
+        self.defense = max(0, self.defense + max(0, decay * self.defense) + int(ochrona - 30))
+        self.hospitals = max(0, self.hospitals + max(0, decay * self.hospitals) + int(szpitale - 30))
+
     
     def nextStep(self, donations):
         self.spendMoneyOn(donations)
@@ -113,7 +124,7 @@ class State:
         self.population.dead = 0
         self.population.is_plague = False
         if(not self.population.getIsEpidemy()):
-            probablity_of_plague = min(0.4, max(0, self.time_from_last_plague-7)/20)
+            probablity_of_plague = min(0.4, max(0, self.time_from_last_plague-8)/15)
             if(random.random() < probablity_of_plague):
                 defensibility = max(1, min(0, self.defense - 5)/20)
                 self.population.plagueNow(defensibility)
@@ -121,10 +132,10 @@ class State:
                 self.time_from_last_epidemy += 1
             else:
                 self.time_from_last_plague += 1 
-                probablity_of_epidemy = min(0.3, max(0, self.time_from_last_plague-8)/20)
+                probablity_of_epidemy = min(0.3, max(0, self.time_from_last_plague-10)/10)
                 if (random.random() < probablity_of_epidemy):
                     beta = 0.3
-                    gamma = max(1, min(0, self.hospitals - 5)/20)
+                    gamma = max(0.2, self.hospitals - 5)/20
                     self.population.startEpidemy(beta, gamma)
                 else:
                     self.population.populationGrowth(culturality)
@@ -153,7 +164,15 @@ class State:
         }
         return str(dict)
 
-        
+    def printStats(self):
+        gamma = max(0.2, self.hospitals - 5)/20
+        print("GAMMA: ", gamma)
+        earn = round(self.technology/3 + self.culture/4 + (self.technology*self.culture)/6)*(self.population.population+1)
+        print("EARN: ", earn)
+        probablity_of_plague = min(0.4, max(0, self.time_from_last_plague-8)/15)
+        print("PROBABILITY OF PLAGUE: ", probablity_of_plague)
+        probablity_of_epidemy = min(0.3, max(0, self.time_from_last_plague-10)/10)
+        print("PROBABILITY OF EPIDEMY: ", probablity_of_epidemy)
 
 
     
