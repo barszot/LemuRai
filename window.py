@@ -56,7 +56,7 @@ class Window:
         self.active_index = 0  # Track which input field is active
         self.external_text = ""
         self.clock = pygame.time.Clock()
-        self.button_rect = pygame.Rect(700, 550, 100, 40)  # Obniżenie przycisku "Zatwierdź"
+        self.button_rect = pygame.Rect(self.WIDTH - 150, self.HEIGHT - 115, 100, 40)  # Obniżenie przycisku "Zatwierdź"
         self.yes_button = pygame.Rect(850, 550, 100, 40)    # Obniżenie przycisku "Tak"
         self.no_button = pygame.Rect(980, 550, 100, 40)     # Obniżenie przycisku "Nie"
 
@@ -92,11 +92,12 @@ class Window:
     def render_text_fields(self):
         """Render the text input fields with adjusted widths."""
         for i in range(len(self.input_texts)):
-            width = 100 if i < 4 else 600  # Set width to 100 for the first four fields
-            pygame.draw.rect(self.screen, self.WHITE, (30, self.text_field_offset + i * 100, width, 50), 2)
+            width = 100 if i < 4 else self.WIDTH - 200  # Set width to 100 for the first four fields
+            
 
             # Determine the text to display based on the field
             if i == 4:  # Special handling for the prompt field
+                pygame.draw.rect(self.screen, self.WHITE, (30, self.HEIGHT - 120, width, 50), 2)
                 text_to_display = self.input_texts[i][self.scroll_offset:]  # Apply scroll offset
                 # Truncate text if it exceeds the width of the rectangle
                 text_surface = self.font.render(text_to_display, True, self.WHITE)
@@ -104,13 +105,18 @@ class Window:
                 if text_surface.get_width() > max_text_width:
                     # Only show the last part of the text if it's too long
                     text_to_display = text_to_display[-max_text_width // self.font.size('a')[0]:]
+                text_surface = self.font.render(text_to_display, True, self.WHITE)
+                self.screen.blit(text_surface, (35, self.HEIGHT - 115))
+                label_surface = self.font.render(self.labels[i], True, self.WHITE)
+                self.screen.blit(label_surface, (35, self.HEIGHT - 145))
             else:
+                pygame.draw.rect(self.screen, self.WHITE, (30, self.text_field_offset + i * 100, width, 50), 2)
                 text_to_display = self.input_texts[i]
-
-            text_surface = self.font.render(text_to_display, True, self.WHITE)
-            self.screen.blit(text_surface, (35, self.text_field_offset + 10 + i * 100))
-            label_surface = self.font.render(self.labels[i], True, self.WHITE)
-            self.screen.blit(label_surface, (35, self.text_field_offset - 25 + i * 100))
+                text_surface = self.font.render(text_to_display, True, self.WHITE)
+                self.screen.blit(text_surface, (35, self.text_field_offset + 10 + i * 100))
+                label_surface = self.font.render(self.labels[i], True, self.WHITE)
+                self.screen.blit(label_surface, (35, self.text_field_offset - 25 + i * 100))
+            
 
     def render_background(self, game_state):
         # Load the background image
@@ -197,7 +203,7 @@ class Window:
         pygame.draw.rect(self.screen, self.BLUE, self.button_rect)
         small_font = pygame.font.Font(None, 24)
         button_text = small_font.render("Wyślij", True, self.WHITE)
-        self.screen.blit(button_text, (self.button_rect.x + 11, self.button_rect.y + 11))
+        self.screen.blit(button_text, (self.button_rect.x + 25, self.button_rect.y + 11))
 
     def render_yes_no_buttons(self):
         """Render 'Yes' and 'No' buttons with a border and a prompt."""
