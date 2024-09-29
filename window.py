@@ -68,6 +68,8 @@ class Window:
         BACKGROUND_WIDTH = 2048
         BACKGROUND_HEIGHT = 1024
 
+        self.lemurpositions = [[]]
+
         # Calculate max_width and max_height
         self.bg_width = min(self.WIDTH - 130, BACKGROUND_WIDTH)
         self.bg_height = min(self.HEIGHT - 280, BACKGROUND_HEIGHT)
@@ -92,7 +94,26 @@ class Window:
             "adviser": 0,
             "people": 0,
         }
+        for i in range(1,1000):
+            tree = randint(1, 3)
+            if tree == 1:
+                lemurw = self.WIDTH - randint(1000, 1050)
+                lemurh = self.HEIGHT - randint(400, 550)
+                self.lemurpositions.append([lemurw, lemurh])
+                
+            elif tree == 2:
+                lemurw = self.WIDTH - randint(700, 760)
+                lemurh = self.HEIGHT - randint(420, 480)
+                self.lemurpositions.append([lemurw, lemurh])
+            elif tree == 3:
+                lemurw = self.WIDTH - randint(172, 220)
+                lemurh = self.HEIGHT - randint(470, 600)
+                self.lemurpositions.append([lemurw, lemurh])
+        
 
+    
+        
+                
     def render_icon(self, icon, icon_position, count):
         small_image = pygame.transform.scale(icon, (30, 30))
         self.screen.blit(small_image, icon_position)
@@ -326,7 +347,7 @@ class Window:
             self.input_texts = ["", "", "", "", ""]  # Reset all fields for the next round
             self.input_values = [0, 0, 0, 0, ""]
             self.active_index = 4  # Focus on the prompt field for the next round
-
+            self.randomize_lemur_positions(self)
 
     def throw_error(self, message):
         """Display error messages."""
@@ -370,22 +391,10 @@ class Window:
             else: 
                 return self.lemurraw
         
-        population = self.communicator.state.population.getPopulation()
-        for i in range(population):
-            tree = randint(1, 3)
-            if tree == 1:
-                lemurw = self.WIDTH - randint(1000, 1050)
-                lemurh = self.HEIGHT - randint(400, 550)
-                self.screen.blit(pygame.transform.scale(lemurSprite(self), (self.bg_width//12, self.bg_height//6 )), (lemurw, lemurh))
-            elif tree == 2:
-                lemurw = self.WIDTH - randint(700, 760)
-                lemurh = self.HEIGHT - randint(420, 480)
-                self.screen.blit(pygame.transform.scale(lemurSprite(self), (self.bg_width//12, self.bg_height//6 )), (lemurw, lemurh))
-            elif tree == 3:
-                lemurw = self.WIDTH - randint(172, 220)
-                lemurh = self.HEIGHT - randint(470, 600)
-                self.screen.blit(pygame.transform.scale(lemurSprite(self), (self.bg_width//12, self.bg_height//6 )), ( lemurw, lemurh))
-  
+        for i in range(self.communicator.state.population.getPopulation()):
+           self.screen.blit(pygame.transform.scale(lemurSprite(self), (self.bg_width//12, self.bg_height//6 )), (self.lemurpositions[i+1][0], self.lemurpositions[i+1][1]))
+                
+    
         
 
     def run(self):
