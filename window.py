@@ -22,7 +22,7 @@ class Window:
 
         # Set up the display
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
-        pygame.display.set_caption("Pygame Window with Text Fields")
+        pygame.display.set_caption("LemuRai")
 
         # Load the images
         self.lemur_image = pygame.image.load("icons/lemur.png")
@@ -89,7 +89,7 @@ class Window:
         self.change_verdict = False
         self.prompt_scroll_offset = 0  # Add this in __init__
         self.scroll_offset = 0  # Nowa zmienna do śledzenia przewinięcia tekstu
-        self.scroll_speeds = 1.3  # Ustaw wartość numeryczną
+        self.scroll_speeds = 1.7  # Ustaw wartość numeryczną
         self.text_widths = {
             "adviser": 0,
             "people": 0,
@@ -134,7 +134,10 @@ class Window:
             # Determine the text to display based on the field
             if i == 4:  # Special handling for the prompt field
                 pygame.draw.rect(self.screen, self.isSelected(i), (30, self.HEIGHT - 120, width, 50), 2)
-                text_to_display = self.input_texts[i][int(self.scroll_offset):]  # Apply scroll offset
+                if len(self.input_texts[i])>50:
+                    text_to_display = self.input_texts[i][-50:]  # Apply scroll offset
+                else:
+                    text_to_display = self.input_texts[i]
                 # Truncate text if it exceeds the width of the rectangle
                 text_surface = self.font.render(text_to_display, True, self.WHITE)
                 max_text_width = width - 10  # Leave some padding
@@ -203,7 +206,7 @@ class Window:
     def render_responses(self):
         """Render responses for adviser and people."""
         bottom_position = (0, self.screen.get_height() - 50)  # Move to the bottom of the screen
-        self.scroll_speeds = 1.3
+        self.scroll_speeds = 1.7
         if self.error_response:
             error_text = f"BŁĄD: {self.error_response}"
             self.scroll_speeds = 0
