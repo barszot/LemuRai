@@ -63,7 +63,14 @@ class Window:
         self.yes_button = pygame.Rect(850, 550, 100, 40)    # Obniżenie przycisku "Tak"
         self.no_button = pygame.Rect(980, 550, 100, 40)     # Obniżenie przycisku "Nie"
 
-            
+        # Define the dimensions of the background image
+        BACKGROUND_WIDTH = 2048
+        BACKGROUND_HEIGHT = 1024
+
+        # Calculate max_width and max_height
+        self.bg_width = min(self.WIDTH - 130, BACKGROUND_WIDTH)
+        self.bg_height = min(self.HEIGHT - 280, BACKGROUND_HEIGHT)
+
         # Labels for each input field
         self.labels = ["Technologia", "Kultura", "Ochrona", "Szpitale", "Wiadomość do Doradcy"]
         self.text_field_offset = 150
@@ -125,13 +132,10 @@ class Window:
         background_image = self.backgroud_image
 
         # Get the display dimensions
-        display_info = pygame.display.Info()
-        display_width = display_info.current_w
-        display_height = display_info.current_h
 
         # Calculate the maximum size for the background image
-        max_width = (display_width * 3 ) // 4  # Use half the display width
-        max_height = display_height  # Use the full display height
+        max_width = self.WIDTH - 130  
+        max_height = self.HEIGHT - 280  
 
         # Get the size of the background image
         image_width, image_height = background_image.get_size()
@@ -143,17 +147,7 @@ class Window:
         background_image = pygame.transform.smoothscale(background_image, (int(image_width * scale_factor), int(image_height * scale_factor)))
 
         # Draw the background image on the right side of the screen
-        self.screen.blit(background_image, (display_width - background_image.get_width(), 0))
-
-        # Depending on the game state, draw different sprites
-        if game_state == 'state1':
-            sprite_image = self.lemurraw
-        elif game_state == 'state2':
-            sprite_image = self.lemursick
-        # Add more states as needed...
-
-        # Draw the sprite on top of the background
-        self.screen.blit(sprite_image, (display_width - background_image.get_width(), 0))
+        self.screen.blit(background_image, (self.WIDTH - background_image.get_width() - 70, 120))
 
 
     def render_scrolling_text(self, text, position, color):
@@ -337,6 +331,40 @@ class Window:
         """Display error messages."""
         self.error_response = message
 
+    def render_sprites(self):
+        
+        def hospitalSprite(self):
+            if self.communicator.state.hospitals < 5:
+                return self.screen.blit(pygame.transform.scale(self.hospital1, (self.bg_width//6, self.bg_height//3 )), (self.WIDTH - 350, self.HEIGHT - 350))
+            elif self.communicator.state.hospitals < 10:
+                return self.screen.blit(pygame.transform.scale(self.hospital2, (self.bg_width//6, self.bg_height//3 )), (self.WIDTH - 350, self.HEIGHT - 350))
+            elif self.communicator.state.hospitals <= 34:
+                return self.screen.blit(pygame.transform.scale(self.hospital3, (self.bg_width//6, self.bg_height//3 )), (self.WIDTH - 350, self.HEIGHT - 350))
+            elif self.communicator.state.hospitals > 34:
+                return self.screen.blit(pygame.transform.scale(self.hospital4, (self.bg_width//6, self.bg_height//3 )), (self.WIDTH - 350, self.HEIGHT - 350))
+        def technologySprite(self):
+            if self.communicator.state.technology < 5:
+                return self.screen.blit(pygame.transform.scale(self.technology1, (self.bg_width//6, self.bg_height//3 )), (self.WIDTH - 940, self.HEIGHT - 350))
+            elif self.communicator.state.technology <= 29:
+                return self.screen.blit(pygame.transform.scale(self.technology2, (self.bg_width//6, self.bg_height//3 )), (self.WIDTH - 940, self.HEIGHT - 320))
+            elif self.communicator.state.technology > 29:
+                return self.screen.blit(pygame.transform.scale(self.technology3, (self.bg_width//12, self.bg_height*5//6 )), (self.WIDTH - 910, self.HEIGHT - 570))
+            
+        def cultureSprite(self):
+            if self.communicator.state.culture < 5:
+                return self.screen.blit(pygame.transform.scale(self.culture1, (self.bg_width//6, self.bg_height//3 )), (self.WIDTH - 640, self.HEIGHT - 350))
+            elif self.communicator.state.culture <= 29:
+                return self.screen.blit(pygame.transform.scale(self.culture2, (self.bg_width//6, self.bg_height//3 )), (self.WIDTH - 640, self.HEIGHT - 330))
+            elif self.communicator.state.culture > 29:
+                return self.screen.blit(pygame.transform.scale(self.culture3, (self.bg_width//6, self.bg_height//6 )), (self.WIDTH - 640, self.HEIGHT - 290))
+
+            
+        hospitalSprite(self)
+        cultureSprite(self)
+        technologySprite(self)      
+  
+        
+
     def run(self):
         """Main loop of the game."""
         running = True
@@ -399,10 +427,12 @@ class Window:
             # Show Yes/No buttons if active
             if self.show_yes_no_buttons:
                 self.render_yes_no_buttons()
-            # Render icons
 
             # Render the background
             self.render_background("state1")
+
+            #Render sprites
+            self.render_sprites()
 
             # Update the display
             pygame.display.flip()
