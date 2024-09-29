@@ -9,7 +9,7 @@ class Window:
         self.tour_state = 1
         self.communicator = Communicator()
         # Constants
-        self.WIDTH, self.HEIGHT = 1200, 700
+        self.WIDTH, self.HEIGHT = pygame.display.Info().current_w, pygame.display.Info().current_h
         self.WHITE = (255, 255, 255)
         self.BLACK = (0, 0, 0)
         self.BLUE = (0, 100, 255)
@@ -34,6 +34,20 @@ class Window:
         self.skull_image = pygame.image.load("icons/skull.png")
         self.bacteria_image = pygame.image.load("icons/bacteria.png")
         self.brain_image = pygame.image.load("icons/brain.png")
+        self.backgroud_image = pygame.image.load("assets/background.png")
+        self.culture1 = pygame.image.load("assets/culture1.png")
+        self.culture2 = pygame.image.load("assets/culture2.png")
+        self.culture3 = pygame.image.load("assets/culture3.png")
+        self.hospital1 = pygame.image.load("assets/hospital1.png")
+        self.hospital2 = pygame.image.load("assets/hospital2.png")
+        self.hospital3 = pygame.image.load("assets/hospital3.png")
+        self.hospital4 = pygame.image.load("assets/hospital4.png")
+        self.lemurraw = pygame.image.load("assets/lemurraw.png")
+        self.lemursick = pygame.image.load("assets/lemursick.png")
+        self.technology1 = pygame.image.load("assets/technology1.png")
+        self.technology2 = pygame.image.load("assets/technology2.png")
+        self.technology3 = pygame.image.load("assets/technology3.png")
+
         self.coin_image = pygame.image.load("icons/coin.png")
         self.defense_image = pygame.image.load("icons/defense.png")
         self.hospitals_image = pygame.image.load("icons/hospitals.png")
@@ -45,7 +59,7 @@ class Window:
         self.active_index = 4  # Track which input field is active
         self.external_text = ""
         self.clock = pygame.time.Clock()
-        self.button_rect = pygame.Rect(700, 550, 100, 40)  # Obniżenie przycisku "Zatwierdź"
+        self.button_rect = pygame.Rect(self.WIDTH - 150, self.HEIGHT - 115, 100, 40)  # Obniżenie przycisku "Zatwierdź"
         self.yes_button = pygame.Rect(850, 550, 100, 40)    # Obniżenie przycisku "Tak"
         self.no_button = pygame.Rect(980, 550, 100, 40)     # Obniżenie przycisku "Nie"
 
@@ -80,19 +94,66 @@ class Window:
     def render_text_fields(self):
         """Render the text input fields with adjusted widths."""
         for i in range(len(self.input_texts)):
-            width = 100 if i < 4 else 600  # Set width to 100 for the first four fields
-            pygame.draw.rect(self.screen, self.WHITE, (30, self.text_field_offset + i * 100, width, 50), 2)
+            width = 100 if i < 4 else self.WIDTH - 200  # Set width to 100 for the first four fields
+            
 
             # Determine the text to display based on the field
-            if i == 4 and len(self.input_texts[i]) > 45:  # Special handling for the prompt field
-                text_to_display = self.input_texts[i][-45:]
+            if i == 4:  # Special handling for the prompt field
+                pygame.draw.rect(self.screen, self.WHITE, (30, self.HEIGHT - 120, width, 50), 2)
+                text_to_display = self.input_texts[i][self.scroll_offset:]  # Apply scroll offset
+                # Truncate text if it exceeds the width of the rectangle
+                text_surface = self.font.render(text_to_display, True, self.WHITE)
+                max_text_width = width - 10  # Leave some padding
+                if text_surface.get_width() > max_text_width:
+                    # Only show the last part of the text if it's too long
+                    text_to_display = text_to_display[-max_text_width // self.font.size('a')[0]:]
+                text_surface = self.font.render(text_to_display, True, self.WHITE)
+                self.screen.blit(text_surface, (35, self.HEIGHT - 115))
+                label_surface = self.font.render(self.labels[i], True, self.WHITE)
+                self.screen.blit(label_surface, (35, self.HEIGHT - 145))
             else:
+                pygame.draw.rect(self.screen, self.WHITE, (30, self.text_field_offset + i * 100, width, 50), 2)
                 text_to_display = self.input_texts[i]
+                text_surface = self.font.render(text_to_display, True, self.WHITE)
+                self.screen.blit(text_surface, (35, self.text_field_offset + 10 + i * 100))
+                label_surface = self.font.render(self.labels[i], True, self.WHITE)
+                self.screen.blit(label_surface, (35, self.text_field_offset - 25 + i * 100))
+            
 
-            text_surface = self.font.render(text_to_display, True, self.WHITE)
-            self.screen.blit(text_surface, (35, self.text_field_offset + 10 + i * 100))
-            label_surface = self.font.render(self.labels[i], True, self.WHITE)
-            self.screen.blit(label_surface, (35, self.text_field_offset - 25 + i * 100))
+    def render_background(self, game_state):
+        # Load the background image
+        background_image = self.backgroud_image
+
+        # Get the display dimensions
+        display_info = pygame.display.Info()
+        display_width = display_info.current_w
+        display_height = display_info.current_h
+
+        # Calculate the maximum size for the background image
+        max_width = (display_width * 3 ) // 4  # Use half the display width
+        max_height = display_height  # Use the full display height
+
+        # Get the size of the background image
+        image_width, image_height = background_image.get_size()
+
+        # Calculate the scale factor to fit the image within the maximum size
+        scale_factor = min(max_width / image_width, max_height / image_height)
+
+        # Resize the image
+        background_image = pygame.transform.smoothscale(background_image, (int(image_width * scale_factor), int(image_height * scale_factor)))
+
+        # Draw the background image on the right side of the screen
+        self.screen.blit(background_image, (display_width - background_image.get_width(), 0))
+
+        # Depending on the game state, draw different sprites
+        if game_state == 'state1':
+            sprite_image = self.lemurraw
+        elif game_state == 'state2':
+            sprite_image = self.lemursick
+        # Add more states as needed...
+
+        # Draw the sprite on top of the background
+        self.screen.blit(sprite_image, (display_width - background_image.get_width(), 0))
 
 
     def render_scrolling_text(self, text, position, color):
@@ -143,7 +204,7 @@ class Window:
         pygame.draw.rect(self.screen, self.BLUE, self.button_rect)
         small_font = pygame.font.Font(None, 24)
         button_text = small_font.render("Wyślij", True, self.WHITE)
-        self.screen.blit(button_text, (self.button_rect.x + 11, self.button_rect.y + 11))
+        self.screen.blit(button_text, (self.button_rect.x + 25, self.button_rect.y + 11))
 
     def render_yes_no_buttons(self):
         """Render 'Yes' and 'No' buttons with a border and a prompt."""
@@ -284,6 +345,9 @@ class Window:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        running = False
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if self.button_rect.collidepoint(event.pos):
                         self.handle_submit()
@@ -332,6 +396,9 @@ class Window:
             if self.show_yes_no_buttons:
                 self.render_yes_no_buttons()
             # Render icons
+
+            # Render the background
+            self.render_background("state1")
 
             # Update the display
             pygame.display.flip()
