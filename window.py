@@ -329,13 +329,22 @@ class Window:
             # Fill the screen with black
             self.screen.fill(self.BLACK)
 
-            self.render_icon(self.lemur_image, (30, 30), 3)
-            self.render_icon(self.book_image, (30, 60), 3)
-            self.render_icon(self.skull_image, (90, 30), 3)
-            self.render_icon(self.bacteria_image, (90, 60), 3)
-            self.render_icon(self.brain_image, (150, 30), 3)
+            self.render_icon(self.lemur_image, (30, 20), self.communicator.state.population.population)
+            self.render_icon(self.coin_image, (30, 50), self.communicator.state.coins)
+            self.render_icon(self.defense_image, (140, 20), self.communicator.state.defense)
+            self.render_icon(self.hospitals_image, (140, 50), self.communicator.state.hospitals)
+            self.render_icon(self.book_image, (230, 20), self.communicator.state.culture)
+            self.render_icon(self.brain_image, (230, 50), self.communicator.state.technology)
+            if (self.communicator.state.population.is_epidemy):
+                self.render_icon(self.bacteria_image, (30, 80), self.communicator.state.population.sick)
+                self.render_icon(self.skull_image, (140, 80), self.communicator.state.population.dead)
+                epidemic_text = self.font.render("Epidemia", True, (210, 80,10))
+                self.screen.blit(epidemic_text, (230, 80))
+            if (self.communicator.state.population.is_plague):
+                self.render_icon(self.skull_image, (140, 80), self.communicator.state.population.dead)
+                plague_text = self.font.render("Kataklizm", True, (210, 80,10))
+                self.screen.blit(plague_text, (230, 80))
 
-            # Render text fields and buttons
             self.render_text_fields()
             self.render_button()
             self.render_responses()
@@ -343,7 +352,6 @@ class Window:
             if self.show_yes_no_buttons:
                 self.render_yes_no_buttons()
             # Render icons
-
 
             # Update the display
             pygame.display.flip()
