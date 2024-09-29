@@ -42,7 +42,7 @@ class Window:
         self.font = pygame.font.Font(None, self.FONT_SIZE)
         self.input_texts = ["", "", "", "", ""]  # List to store input texts for multiple fields
         self.input_values = [0, 0, 0, 0, ""]
-        self.active_index = 0  # Track which input field is active
+        self.active_index = 4  # Track which input field is active
         self.external_text = ""
         self.clock = pygame.time.Clock()
         self.button_rect = pygame.Rect(700, 550, 100, 40)  # Obniżenie przycisku "Zatwierdź"
@@ -66,7 +66,6 @@ class Window:
         self.prompt_scroll_offset = 0  # Add this in __init__
         self.scroll_offset = 0  # Nowa zmienna do śledzenia przewinięcia tekstu
         self.scroll_speeds = 1  # Ustaw wartość numeryczną
-        self.scroll_offsets = 0  # Inicjalizacja offsetu
         self.text_widths = {
             "adviser": 0,
             "people": 0,
@@ -85,14 +84,8 @@ class Window:
             pygame.draw.rect(self.screen, self.WHITE, (30, self.text_field_offset + i * 100, width, 50), 2)
 
             # Determine the text to display based on the field
-            if i == 4:  # Special handling for the prompt field
-                text_to_display = self.input_texts[i][self.scroll_offset:]  # Apply scroll offset
-                # Truncate text if it exceeds the width of the rectangle
-                text_surface = self.font.render(text_to_display, True, self.WHITE)
-                max_text_width = width - 10  # Leave some padding
-                if text_surface.get_width() > max_text_width:
-                    # Only show the last part of the text if it's too long
-                    text_to_display = text_to_display[-max_text_width // self.font.size('a')[0]:]
+            if i == 4 and len(self.input_texts[i]) > 45:  # Special handling for the prompt field
+                text_to_display = self.input_texts[i][-45:]
             else:
                 text_to_display = self.input_texts[i]
 
@@ -103,7 +96,7 @@ class Window:
 
 
     def render_scrolling_text(self, text, position, color):
-        text = "          " + text.replace("\n", " ")
+        text = "           " + text.replace("\n", " ")
 
         """Render scrolling text with a background color."""
         # Drawing the background for the text
@@ -129,7 +122,6 @@ class Window:
         """Render responses for adviser and people."""
         bottom_position = (0, self.screen.get_height() - 50)  # Move to the bottom of the screen
         self.scroll_speeds = 1
-
         if self.error_response:
             error_text = f"BŁĄD: {self.error_response}"
             self.scroll_speeds = 0
@@ -177,36 +169,6 @@ class Window:
         self.screen.blit(no_text, (self.no_button.x + 35, self.no_button.y + 10))
 
 
-
-    def handle_text_input(self, event):
-        """Handle text input and navigation."""
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_BACKSPACE:
-                # Usuwaj ostatni znak, jeśli pole tekstowe nie jest puste
-                if self.input_texts[self.active_index]:
-                    self.input_texts[self.active_index] = self.input_texts[self.active_index][:-1]
-                    self.scroll_offset = max(self.scroll_offset - 1, 0)  # Zmniejsz offset przy usuwaniu
-            elif event.key == pygame.K_RETURN:
-                self.handle_submit()
-            elif event.key == pygame.K_LEFT and self.active_index == 4:
-                # Przewiń tekst w lewo
-                if self.scroll_offset > 0:
-                    self.scroll_offset -= 1
-            elif event.key == pygame.K_RIGHT and self.active_index == 4:
-                # Przewiń tekst w prawo
-                if self.scroll_offset < len(self.input_texts[self.active_index]) - 30:  # Ustaw 30 na szerokość pola tekstowego
-                    self.scroll_offset += 1
-            else:
-                if self.active_index < len(self.input_texts):
-                    self.input_texts[self.active_index] += event.unicode
-                    if self.active_index == 4:  # Tylko dla pola "Prompt"
-                        # Aktualizuj scroll_offset, aby nie przekroczył długości tekstu
-                        if len(self.input_texts[4]) > 30:  # Ustaw 30 na długość widocznego tekstu
-                            self.scroll_offset = max(self.scroll_offset, len(self.input_texts[4]) - 30)
-
-
-
-
     def handle_submit(self):
         """Handle text submission."""
         self.error_response = ""
@@ -245,6 +207,8 @@ class Window:
         }
 
         com_result = self.communicator.gameStep(True, data)
+        self.scroll_offset = 0
+
         self.adviser_response = com_result["adviser_response"]
 
         # Activate Yes/No buttons based on adviser response
@@ -254,13 +218,24 @@ class Window:
         """Handle 'Yes' button click."""
         self.show_yes_no_buttons = False
         self.yes_no_value = "tak"
+        self.adviser_response = ""
+        self.input_texts[4] = ""  # Reset prompt field after accepting
+        self.input_values[4] = ""  # Reset prompt field after accepting
+
         self.process_verdict()
+        self.active_index = 4  # Focus on the prompt field again
+
 
     def handle_no(self):
         """Handle 'No' button click."""
         self.show_yes_no_buttons = False
         self.yes_no_value = "nie"
+        self.adviser_response = ""
+        self.input_texts[4] = ""  # Reset prompt field after accepting
+        self.input_values[4] = ""  # Reset prompt field after accepting
+
         self.process_verdict()
+        self.active_index = 4  # Focus on the prompt field
 
     def process_verdict(self):
         """Process the verdict based on Yes/No response."""
@@ -268,11 +243,13 @@ class Window:
             self.change_verdict = True
         else:
             self.change_verdict = False
-
+        self.yes_no_value = ""
         if self.change_verdict:
             # Reset input fields after a "Tak" response
-            self.input_texts = ["", "", "", "", ""]
+            self.input_texts = ["", "", "", "", ""]  # Reset all fields
             self.input_values = [0, 0, 0, 0, ""]
+            self.active_index = 4  # Focus on the prompt field
+
         else:
             # Get further responses after a "Nie" response
             data = {
@@ -287,9 +264,13 @@ class Window:
             com_result = self.communicator.gameStep(False, data)
             self.adviser_response = ""
             self.people_response = com_result["people_response"]
-            # Reset input fields after the verdict processing
-            self.input_texts = ["", "", "", "", ""]
+            self.scroll_offset = 0
+
+            # Reset for a new round
+            self.input_texts = ["", "", "", "", ""]  # Reset all fields for the next round
             self.input_values = [0, 0, 0, 0, ""]
+            self.active_index = 4  # Focus on the prompt field for the next round
+
 
     def throw_error(self, message):
         """Display error messages."""
@@ -320,10 +301,9 @@ class Window:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_BACKSPACE:
                         self.input_texts[self.active_index] = self.input_texts[self.active_index][:-1]
-                    elif event.key == pygame.K_RETURN:
-                        self.handle_submit()
+
                     else:
-                        if self.active_index < len(self.input_texts):
+                        if self.active_index < 5:
                             self.input_texts[self.active_index] += event.unicode
 
             # Fill the screen with black

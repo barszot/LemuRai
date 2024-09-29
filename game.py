@@ -96,7 +96,7 @@ class State:
         self.time_from_last_epidemy = 0
 
     def moneyProfit(self):
-        self.coins += round(self.technology/3 + self.culture/4 + (self.technology*self.culture)/6)*(self.population.population+1)
+        self.coins += round((self.technology/3 + self.culture/4 + (self.technology*self.culture)/6)*(self.population.population+1)/160)
 
     def spendMoneyOn(self, donations):
         # Użycie get() z wartością domyślną 0 dla każdego klucza
