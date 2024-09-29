@@ -112,6 +112,41 @@ class Window:
             label_surface = self.font.render(self.labels[i], True, self.WHITE)
             self.screen.blit(label_surface, (35, self.text_field_offset - 25 + i * 100))
 
+    def render_background(self, game_state):
+        # Load the background image
+        background_image = self.backgroud_image
+
+        # Get the display dimensions
+        display_info = pygame.display.Info()
+        display_width = display_info.current_w
+        display_height = display_info.current_h
+
+        # Calculate the maximum size for the background image
+        max_width = display_width // 2  # Use half the display width
+        max_height = display_height  # Use the full display height
+
+        # Get the size of the background image
+        image_width, image_height = background_image.get_size()
+
+        # Calculate the scale factor to fit the image within the maximum size
+        scale_factor = min(max_width / image_width, max_height / image_height)
+
+        # Resize the image
+        background_image = pygame.transform.smoothscale(background_image, (int(image_width * scale_factor), int(image_height * scale_factor)))
+
+        # Draw the background image on the right side of the screen
+        self.screen.blit(background_image, (display_width - background_image.get_width(), 0))
+
+        # Depending on the game state, draw different sprites
+        if game_state == 'state1':
+            sprite_image = self.lemurraw
+        elif game_state == 'state2':
+            sprite_image = self.lemursick
+        # Add more states as needed...
+
+        # Draw the sprite on top of the background
+        self.screen.blit(sprite_image, (display_width - background_image.get_width(), 0))
+
 
     def render_scrolling_text(self, text, position, color):
         text = "          " + text.replace("\n", " ")
@@ -358,6 +393,8 @@ class Window:
                 self.render_yes_no_buttons()
             # Render icons
 
+            # Render the background
+            self.render_background("state1")
 
             # Update the display
             pygame.display.flip()
