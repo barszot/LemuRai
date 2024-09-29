@@ -89,7 +89,7 @@ class Window:
         self.change_verdict = False
         self.prompt_scroll_offset = 0  # Add this in __init__
         self.scroll_offset = 0  # Nowa zmienna do śledzenia przewinięcia tekstu
-        self.scroll_speeds = 1  # Ustaw wartość numeryczną
+        self.scroll_speeds = 1.3  # Ustaw wartość numeryczną
         self.text_widths = {
             "adviser": 0,
             "people": 0,
@@ -134,7 +134,7 @@ class Window:
             # Determine the text to display based on the field
             if i == 4:  # Special handling for the prompt field
                 pygame.draw.rect(self.screen, self.isSelected(i), (30, self.HEIGHT - 120, width, 50), 2)
-                text_to_display = self.input_texts[i][self.scroll_offset:]  # Apply scroll offset
+                text_to_display = self.input_texts[i][int(self.scroll_offset):]  # Apply scroll offset
                 # Truncate text if it exceeds the width of the rectangle
                 text_surface = self.font.render(text_to_display, True, self.WHITE)
                 max_text_width = width - 10  # Leave some padding
@@ -203,7 +203,7 @@ class Window:
     def render_responses(self):
         """Render responses for adviser and people."""
         bottom_position = (0, self.screen.get_height() - 50)  # Move to the bottom of the screen
-        self.scroll_speeds = 1
+        self.scroll_speeds = 1.3
         if self.error_response:
             error_text = f"BŁĄD: {self.error_response}"
             self.scroll_speeds = 0
@@ -364,7 +364,6 @@ class Window:
             self.input_texts = ["", "", "", "", ""]  # Reset all fields for the next round
             self.input_values = [0, 0, 0, 0, ""]
             self.active_index = 4  # Focus on the prompt field for the next round
-            self.randomize_lemur_positions(self)
 
     def throw_error(self, message):
         """Display error messages."""
@@ -410,9 +409,7 @@ class Window:
         
         for i in range(self.communicator.state.population.getPopulation()):
            self.screen.blit(pygame.transform.scale(lemurSprite(self), (self.bg_width//12, self.bg_height//6 )), (self.lemurpositions[i+1][0], self.lemurpositions[i+1][1]))
-                
-    
-        
+                 
 
     def run(self):
         """Main loop of the game."""
