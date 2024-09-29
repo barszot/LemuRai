@@ -5,7 +5,9 @@ import sys
 pygame.init()
 
 # Constants
-WIDTH, HEIGHT = 800, 600
+
+screenInfo = pygame.display.Info()
+WIDTH, HEIGHT = screenInfo.current_w, screenInfo.current_h
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 BLUE = (0, 100, 255)
@@ -105,6 +107,8 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                running = False
             if active:
                 if event.key == pygame.K_BACKSPACE:
                     if backspace_initial_press:
