@@ -2,7 +2,9 @@ from langchain_ollama import ChatOllama
 from langchain_core.messages import HumanMessage, SystemMessage
 from game import State
 import json
-
+import asyncio
+import threading
+import sys
 
 rules = """
 Zasady gry:
@@ -38,7 +40,7 @@ Jeśli była klęska żywiołowa a król nie zadbał o ochronę i sporo lemurów
 class Communicator:
     def __init__(self):
         self.state = State()
-
+        self.text = ""
         self.adviser_message = SystemMessage(content="""
                 Jesteś lemurem - doradcą głównego gracza, króla lemurów.
                 Sprawdzasz czy starczy pieniędzy na dane inwestycje i doradzasz/odradzasz królowi jego decyzji,
@@ -51,90 +53,42 @@ class Communicator:
                 Niech twoje wypowiedzi nie będą za długie. 3-5 zdań to dobra długość.
                 """ + rules)
         
-        self.king_message = SystemMessage(content="""
-                Jesteś śmieszkowatym królem lemurów. Reprezentujesz gracza i podsumowujesz jego decyzję w krótkich śmiesznych słowach.
-                Mimo pozornej lekkomyślności starasz się słuchać doradcy i dbać o poddanych. Twoje wypowiedzi to 1-2 zdania.
-                Wypowiadasz się JAKO GRACZ a nie o graczu!!!
-                """ + rules)
-        
         self.people_message = SystemMessage(content="""
                 Jesteś państwem lemurów, które reaguje na decyzje króla. Jesteś ludem! Jesteś poddanymi!
                 Pamiętaj że poddani to NIE JEST doradca króla. Poddani to oddzielny, "wieloosoby" asystent,
                 niepowiązany z doradcą
                 """ + rules)
 
-        self.calculator_message = SystemMessage(content=f"""
-        Użytkownik podaje w swojej wypowiedzi wydatki na każdy z czterech aspektów królestwa:
-        technologia, ochrona (przed klęskami żywiołowymi), szpitale, kultura.
-        Jeśli któryś aspekt nie zostanie wymieniony to znaczy że przeznaczono na niego zero monet
-        Aktualna liczba pieniędzy królestwa to: {self.state.coins}
-        Przerób jego wypowiedź na json o dokładnie takich kluczach :
-        {{
-            "technologia": liczba pieniędzy przeznaczonych na technologię (integer a nie string),
-            "kultura": liczba pieniędzy przeznaczonych na kulturę (integer a nie string),
-            "szpitale": liczba pieniędzy przeznaczonych na szpitale (integer a nie string),
-            "ochrona: liczba pieniędzy przeznaczonych na ochronę (przed klęskami żywiołowymi) (integer a nie string)
-        }}
-        Twoja odpowiedź ma zawierać TYLKO I WYŁĄCZNIE TAKI JSON (z dokładnie czterema kluczami), bez ŻADNYCH dodatkowych wartości!
-        Nie dopisuj "Oto przetworzony wynik" ani nic podobnego, ma być TYLKO JSON!
-        """)
-        self.model = ChatOllama(model="llama3.1:8b", base_url="http://10.8.0.1:8080")
+        self.model = ChatOllama(model="llama3.1:8b", base_url="http://10.8.0.1:8080", keep_alive=1500)
+        self.tour = 0
+        self.verdict = ""
+        self.expense = ""
 
-    def startGame(self):
-        tour = 0
-        while self.state.population:
-            tour+=1
-            decision = ""
-            expsense = {}
-            while True:
-                decision = input("Werdykt: ")
-                response = self.model.invoke([self.calculator_message, HumanMessage(content=decision)])
-                expense = json.loads(response.content)
-                print(response.content)
-                if (not all(value >= 0 for value in expense.values())):
-                    print("UWAGA: Nie wolno wydać ujemnej ilości pieniędzy na jakąkolwiek rzecz!")
-                else:
-                    expense_sum = 0
-                    for key in expense:
-                        expense[key] = int(expense[key])
-                        expense_sum += expense[key]
-                    if expense_sum > self.state.coins:
-                        print("UWAGA: Nie stać cię na tak duże wydatki")
-                        continue
-                    else:
-                        break
-            response = self.model.invoke([self.adviser_message, HumanMessage(content=decision+"\nSpis wydatków\n"+str(expense)+"\nObecny stan gry:\n"+str(self.state))])
-            
-            print(response.content)
-            
-            changeDecision = input("Czy chcesz zmienić decyzję? (wpisz 'tak' lub 'nie'): ")
-            
-            if (changeDecision.strip().lower() == "tak"):
-                while True:
-                    decision = input("Werdykt: ")
-                    response = self.model.invoke([self.calculator_message, HumanMessage(content=decision)])
-                    expense = json.loads(response.content)
-                    print(response.content)
-                    if (not all(value >= 0 for value in expense.values())):
-                        print("UWAGA: Nie wolno wydać ujemnej ilości pieniędzy na jakąkolwiek rzecz!")
-                    else:
-                        expense_sum = 0
-                        for key in expense:
-                            expense[key] = int(expense[key])
-                            expense_sum += expense[key]
-                        if expense_sum > self.state.coins:
-                            print("UWAGA: Nie stać cię na tak duże wydatki")
-                            continue
-                        else:
-                            break
-            king_response = self.model.invoke([self.king_message, HumanMessage(content="Wyraź decyzję gracza (poniżej) swoimi słowami\n" + decision)])
-            print("KRÓL:\n"+king_response.content)
-            self.state.nextStep(expense)
-            print(self.state)
-            people_response = self.model.invoke([self.people_message, HumanMessage(content="Zarządzenie króla:\n"+king_response.content+str(self.state))])
-            print("PODDDANI:\n"+people_response.content)
-            self.state.printStats()
+    def gameStep(self, starting, data=None):
+        """
+        JEDEN -> czekamy na startowy werdykt
+        DWA -> opcjonalna zmiana werdyktu
+        TRZY -> egzekucja
+        powtórz
+        """
+
+        if starting:
+            self.verdict = data["verdict"]
+            self.expense = data["expense"]
+            response = self.model.invoke([self.adviser_message, HumanMessage(content=self.verdict+"\nSpis wydatków\n"+str(self.expense)+"\nObecny stan gry:\n"+str(self.state))])
+            return {
+                "adviser_response": response.content,
+            }
+
+
+        else:
+            self.state.nextStep(self.expense)
+            people_response = self.model.invoke([self.people_message, HumanMessage(content="Zarządzenie króla:\n"+self.verdict+"\nObecny stan gry:\n"+str(self.state))])
+            self.tour += 1
+            return {
+                "people_response": people_response.content,
+            }
 
 if __name__ == "__main__":
-    com = Communicator()
-    com.startGame()
+    communicator = Communicator()
+    communicator.startGame()
