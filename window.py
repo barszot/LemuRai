@@ -34,7 +34,9 @@ class Window:
         self.skull_image = pygame.image.load("icons/skull.png")
         self.bacteria_image = pygame.image.load("icons/bacteria.png")
         self.brain_image = pygame.image.load("icons/brain.png")
-
+        self.coin_image = pygame.image.load("icons/coin.png")
+        self.defense_image = pygame.image.load("icons/defense.png")
+        self.hospitals_image = pygame.image.load("icons/hospitals.png")
 
         # Font and variables
         self.font = pygame.font.Font(None, self.FONT_SIZE)
@@ -49,7 +51,7 @@ class Window:
 
             
         # Labels for each input field
-        self.labels = ["Technologia", "Kultura", "Ochrona", "Zdrowie", "Prompt"]
+        self.labels = ["Technologia", "Kultura", "Ochrona", "Szpitale", "Wiadomość do Doradcy"]
         self.text_field_offset = 150
 
         # Yes/No button handling
