@@ -225,14 +225,26 @@ class Window:
     def render_yes_no_buttons(self):
         """Render 'Yes' and 'No' buttons with a border and a prompt."""
         # Draw the border around the buttons
+        self.yes_button.x = 30  # Decrease the x property by 50
+        self.no_button.x = 150  # Decrease the x property by 50
+        self.yes_button.y = 560  # Move the button up
+        self.no_button.y = 560  # Move the button up
+        self.yes_button.width = 90  # Decrease the width by 20
+        self.yes_button.height = 50  # Decrease the height by 10
+        self.no_button.width = 90  # Decrease the width by 20
+        self.no_button.height = 50  # Decrease the height by 10
         border_rect = pygame.Rect(self.yes_button.x - 10, self.yes_button.y - 30, 
                                 self.no_button.x + self.no_button.width - (self.yes_button.x - 10) + 20, 
                                 self.no_button.height + 50)
-        pygame.draw.rect(self.screen, self.WHITE, border_rect, 2)  # White border
+       
+       # Create a new Font object with a smaller size
+        small_font = pygame.font.Font(None, 28)  # Replace 24 with the size you want
+
+        # Render the verdict_prompt with the smaller font
+        prompt_surface = small_font.render(self.verdict_prompt, True, self.WHITE)
 
         # Draw the prompt above the buttons
-        prompt_surface = self.font.render(self.verdict_prompt, True, self.WHITE)
-        prompt_position = (border_rect.x + 10, border_rect.y - 30)
+        prompt_position = (border_rect.x + 10, border_rect.y - 10)
         self.screen.blit(prompt_surface, prompt_position)
 
         # Draw the buttons
@@ -242,8 +254,8 @@ class Window:
         small_font = pygame.font.Font(None, 24)
         yes_text = small_font.render("Tak", True, self.WHITE)
         no_text = small_font.render("Nie", True, self.WHITE)
-        self.screen.blit(yes_text, (self.yes_button.x + 35, self.yes_button.y + 10))
-        self.screen.blit(no_text, (self.no_button.x + 35, self.no_button.y + 10))
+        self.screen.blit(yes_text, (self.yes_button.x + 32, self.yes_button.y + 17))
+        self.screen.blit(no_text, (self.no_button.x + 32, self.no_button.y + 17))
 
 
     def handle_submit(self):
