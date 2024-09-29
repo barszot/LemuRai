@@ -48,12 +48,15 @@ class Window:
         self.technology2 = pygame.image.load("assets/technology2.png")
         self.technology3 = pygame.image.load("assets/technology3.png")
 
+        self.coin_image = pygame.image.load("icons/coin.png")
+        self.defense_image = pygame.image.load("icons/defense.png")
+        self.hospitals_image = pygame.image.load("icons/hospitals.png")
 
         # Font and variables
         self.font = pygame.font.Font(None, self.FONT_SIZE)
         self.input_texts = ["", "", "", "", ""]  # List to store input texts for multiple fields
         self.input_values = [0, 0, 0, 0, ""]
-        self.active_index = 0  # Track which input field is active
+        self.active_index = 4  # Track which input field is active
         self.external_text = ""
         self.clock = pygame.time.Clock()
         self.button_rect = pygame.Rect(self.WIDTH - 150, self.HEIGHT - 115, 100, 40)  # Obniżenie przycisku "Zatwierdź"
@@ -62,7 +65,7 @@ class Window:
 
             
         # Labels for each input field
-        self.labels = ["Technologia", "Kultura", "Ochrona", "Zdrowie", "Prompt"]
+        self.labels = ["Technologia", "Kultura", "Ochrona", "Szpitale", "Wiadomość do Doradcy"]
         self.text_field_offset = 150
 
         # Yes/No button handling
@@ -77,7 +80,6 @@ class Window:
         self.prompt_scroll_offset = 0  # Add this in __init__
         self.scroll_offset = 0  # Nowa zmienna do śledzenia przewinięcia tekstu
         self.scroll_speeds = 1  # Ustaw wartość numeryczną
-        self.scroll_offsets = 0  # Inicjalizacja offsetu
         self.text_widths = {
             "adviser": 0,
             "people": 0,
@@ -155,7 +157,7 @@ class Window:
 
 
     def render_scrolling_text(self, text, position, color):
-        text = "          " + text.replace("\n", " ")
+        text = "           " + text.replace("\n", " ")
 
         """Render scrolling text with a background color."""
         # Drawing the background for the text
@@ -181,7 +183,6 @@ class Window:
         """Render responses for adviser and people."""
         bottom_position = (0, self.screen.get_height() - 50)  # Move to the bottom of the screen
         self.scroll_speeds = 1
-
         if self.error_response:
             error_text = f"BŁĄD: {self.error_response}"
             self.scroll_speeds = 0
@@ -229,36 +230,6 @@ class Window:
         self.screen.blit(no_text, (self.no_button.x + 35, self.no_button.y + 10))
 
 
-
-    def handle_text_input(self, event):
-        """Handle text input and navigation."""
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_BACKSPACE:
-                # Usuwaj ostatni znak, jeśli pole tekstowe nie jest puste
-                if self.input_texts[self.active_index]:
-                    self.input_texts[self.active_index] = self.input_texts[self.active_index][:-1]
-                    self.scroll_offset = max(self.scroll_offset - 1, 0)  # Zmniejsz offset przy usuwaniu
-            elif event.key == pygame.K_RETURN:
-                self.handle_submit()
-            elif event.key == pygame.K_LEFT and self.active_index == 4:
-                # Przewiń tekst w lewo
-                if self.scroll_offset > 0:
-                    self.scroll_offset -= 1
-            elif event.key == pygame.K_RIGHT and self.active_index == 4:
-                # Przewiń tekst w prawo
-                if self.scroll_offset < len(self.input_texts[self.active_index]) - 30:  # Ustaw 30 na szerokość pola tekstowego
-                    self.scroll_offset += 1
-            else:
-                if self.active_index < len(self.input_texts):
-                    self.input_texts[self.active_index] += event.unicode
-                    if self.active_index == 4:  # Tylko dla pola "Prompt"
-                        # Aktualizuj scroll_offset, aby nie przekroczył długości tekstu
-                        if len(self.input_texts[4]) > 30:  # Ustaw 30 na długość widocznego tekstu
-                            self.scroll_offset = max(self.scroll_offset, len(self.input_texts[4]) - 30)
-
-
-
-
     def handle_submit(self):
         """Handle text submission."""
         self.error_response = ""
@@ -297,6 +268,8 @@ class Window:
         }
 
         com_result = self.communicator.gameStep(True, data)
+        self.scroll_offset = 0
+
         self.adviser_response = com_result["adviser_response"]
 
         # Activate Yes/No buttons based on adviser response
@@ -306,13 +279,24 @@ class Window:
         """Handle 'Yes' button click."""
         self.show_yes_no_buttons = False
         self.yes_no_value = "tak"
+        self.adviser_response = ""
+        self.input_texts[4] = ""  # Reset prompt field after accepting
+        self.input_values[4] = ""  # Reset prompt field after accepting
+
         self.process_verdict()
+        self.active_index = 4  # Focus on the prompt field again
+
 
     def handle_no(self):
         """Handle 'No' button click."""
         self.show_yes_no_buttons = False
         self.yes_no_value = "nie"
+        self.adviser_response = ""
+        self.input_texts[4] = ""  # Reset prompt field after accepting
+        self.input_values[4] = ""  # Reset prompt field after accepting
+
         self.process_verdict()
+        self.active_index = 4  # Focus on the prompt field
 
     def process_verdict(self):
         """Process the verdict based on Yes/No response."""
@@ -320,11 +304,13 @@ class Window:
             self.change_verdict = True
         else:
             self.change_verdict = False
-
+        self.yes_no_value = ""
         if self.change_verdict:
             # Reset input fields after a "Tak" response
-            self.input_texts = ["", "", "", "", ""]
+            self.input_texts = ["", "", "", "", ""]  # Reset all fields
             self.input_values = [0, 0, 0, 0, ""]
+            self.active_index = 4  # Focus on the prompt field
+
         else:
             # Get further responses after a "Nie" response
             data = {
@@ -339,9 +325,13 @@ class Window:
             com_result = self.communicator.gameStep(False, data)
             self.adviser_response = ""
             self.people_response = com_result["people_response"]
-            # Reset input fields after the verdict processing
-            self.input_texts = ["", "", "", "", ""]
+            self.scroll_offset = 0
+
+            # Reset for a new round
+            self.input_texts = ["", "", "", "", ""]  # Reset all fields for the next round
             self.input_values = [0, 0, 0, 0, ""]
+            self.active_index = 4  # Focus on the prompt field for the next round
+
 
     def throw_error(self, message):
         """Display error messages."""
@@ -375,22 +365,30 @@ class Window:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_BACKSPACE:
                         self.input_texts[self.active_index] = self.input_texts[self.active_index][:-1]
-                    elif event.key == pygame.K_RETURN:
-                        self.handle_submit()
+
                     else:
-                        if self.active_index < len(self.input_texts):
+                        if self.active_index < 5:
                             self.input_texts[self.active_index] += event.unicode
 
             # Fill the screen with black
             self.screen.fill(self.BLACK)
 
-            self.render_icon(self.lemur_image, (30, 30), 3)
-            self.render_icon(self.book_image, (30, 60), 3)
-            self.render_icon(self.skull_image, (90, 30), 3)
-            self.render_icon(self.bacteria_image, (90, 60), 3)
-            self.render_icon(self.brain_image, (150, 30), 3)
+            self.render_icon(self.lemur_image, (30, 20), self.communicator.state.population.population)
+            self.render_icon(self.coin_image, (30, 50), self.communicator.state.coins)
+            self.render_icon(self.defense_image, (140, 20), self.communicator.state.defense)
+            self.render_icon(self.hospitals_image, (140, 50), self.communicator.state.hospitals)
+            self.render_icon(self.book_image, (230, 20), self.communicator.state.culture)
+            self.render_icon(self.brain_image, (230, 50), self.communicator.state.technology)
+            if (self.communicator.state.population.is_epidemy):
+                self.render_icon(self.bacteria_image, (30, 80), self.communicator.state.population.sick)
+                self.render_icon(self.skull_image, (140, 80), self.communicator.state.population.dead)
+                epidemic_text = self.font.render("Epidemia", True, (210, 80,10))
+                self.screen.blit(epidemic_text, (230, 80))
+            if (self.communicator.state.population.is_plague):
+                self.render_icon(self.skull_image, (140, 80), self.communicator.state.population.dead)
+                plague_text = self.font.render("Kataklizm", True, (210, 80,10))
+                self.screen.blit(plague_text, (230, 80))
 
-            # Render text fields and buttons
             self.render_text_fields()
             self.render_button()
             self.render_responses()

@@ -56,7 +56,7 @@ class Communicator:
         self.people_message = SystemMessage(content="""
                 Jesteś państwem lemurów, które reaguje na decyzje króla. Jesteś ludem! Jesteś poddanymi!
                 Pamiętaj że poddani to NIE JEST doradca króla. Poddani to oddzielny, "wieloosoby" asystent,
-                niepowiązany z doradcą
+                niepowiązany z doradcą, mów wiec o sobie w liczbie mnogiej!
                 """ + rules)
 
         self.model = ChatOllama(model="llama3.1:8b", base_url="http://10.8.0.1:8080", keep_alive=1500)
@@ -83,7 +83,7 @@ class Communicator:
 
         else:
             self.state.nextStep(self.expense)
-            people_response = self.model.invoke([self.people_message, HumanMessage(content="Zarządzenie króla:\n"+self.verdict+"\nObecny stan gry:\n"+str(self.state))])
+            people_response = self.model.invoke([self.people_message, HumanMessage(content="Zarządzenie króla:\n"+self.expense+"\nObecny stan gry:\n"+str(self.state))])
             self.tour += 1
             return {
                 "people_response": people_response.content,
