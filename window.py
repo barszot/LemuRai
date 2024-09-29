@@ -9,7 +9,7 @@ class Window:
         self.tour_state = 1
         self.communicator = Communicator()
         # Constants
-        self.WIDTH, self.HEIGHT = 1200, 700
+        self.WIDTH, self.HEIGHT = pygame.display.Info().current_w, pygame.display.Info().current_h
         self.WHITE = (255, 255, 255)
         self.BLACK = (0, 0, 0)
         self.BLUE = (0, 100, 255)
@@ -314,6 +314,9 @@ class Window:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        running = False
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if self.button_rect.collidepoint(event.pos):
                         self.handle_submit()
