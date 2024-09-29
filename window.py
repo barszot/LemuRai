@@ -359,8 +359,12 @@ class Window:
                     else:
                         # Check if clicked inside any of the text fields
                         for i in range(len(self.input_texts)):
-                            if 30 <= event.pos[0] <= 430 and (self.text_field_offset + i * 100) <= event.pos[1] <= (self.text_field_offset + 50 + i * 100):
-                                self.active_index = i
+                            if i == 4:
+                                if 30 <= event.pos[0] <= 430 and (self.HEIGHT - 130)  <= event.pos[1] <= (self.HEIGHT - 80):
+                                    self.active_index = i
+                            else:
+                                if 30 <= event.pos[0] <= 430 and (self.text_field_offset + i * 100) <= event.pos[1] <= (self.text_field_offset + 50 + i * 100):
+                                    self.active_index = i
 
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_BACKSPACE:
