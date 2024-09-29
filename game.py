@@ -111,10 +111,10 @@ class State:
         decay = 0.7
         
         # Aktualizacja wartości z zachowaniem minimum 0
-        self.culture = max(0, self.culture + max(0, decay * self.culture) + int(kultura - 30))
-        self.technology = max(0, self.technology + max(0, decay * self.technology) + int(tech - 30))
-        self.defense = max(0, self.defense + max(0, decay * self.defense) + int(ochrona - 30))
-        self.hospitals = max(0, self.hospitals + max(0, decay * self.hospitals) + int(szpitale - 30))
+        self.culture = max(0, self.culture + int( decay * self.culture +kultura - 30))
+        self.technology = max(0, self.technology + int(decay * self.technology + tech - 30))
+        self.defense = max(0, self.defense + int(decay * self.defense + ochrona - 30))
+        self.hospitals = max(0, self.hospitals + int( decay * self.hospitals + szpitale - 30))
 
     
     def nextStep(self, donations):
