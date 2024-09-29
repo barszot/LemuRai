@@ -34,6 +34,19 @@ class Window:
         self.skull_image = pygame.image.load("icons/skull.png")
         self.bacteria_image = pygame.image.load("icons/bacteria.png")
         self.brain_image = pygame.image.load("icons/brain.png")
+        self.backgroud_image = pygame.image.load("assets/background.png")
+        self.culture1 = pygame.image.load("assets/culture1.png")
+        self.culture2 = pygame.image.load("assets/culture2.png")
+        self.culture3 = pygame.image.load("assets/culture3.png")
+        self.hospital1 = pygame.image.load("assets/hospital1.png")
+        self.hospital2 = pygame.image.load("assets/hospital2.png")
+        self.hospital3 = pygame.image.load("assets/hospital3.png")
+        self.hospital4 = pygame.image.load("assets/hospital4.png")
+        self.lemurraw = pygame.image.load("assets/lemurraw.png")
+        self.lemursick = pygame.image.load("assets/lemursick.png")
+        self.technology1 = pygame.image.load("assets/technology1.png")
+        self.technology2 = pygame.image.load("assets/technology2.png")
+        self.technology3 = pygame.image.load("assets/technology3.png")
 
 
         # Font and variables
