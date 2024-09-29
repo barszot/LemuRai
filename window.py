@@ -111,6 +111,11 @@ class Window:
                 self.lemurpositions.append([lemurw, lemurh])
         
 
+    def isSelected(self, index):
+        if self.active_index == index:
+            return self.BLUE
+        else:
+            return self.WHITE
     
         
                 
@@ -128,7 +133,7 @@ class Window:
 
             # Determine the text to display based on the field
             if i == 4:  # Special handling for the prompt field
-                pygame.draw.rect(self.screen, self.WHITE, (30, self.HEIGHT - 120, width, 50), 2)
+                pygame.draw.rect(self.screen, self.isSelected(i), (30, self.HEIGHT - 120, width, 50), 2)
                 text_to_display = self.input_texts[i][self.scroll_offset:]  # Apply scroll offset
                 # Truncate text if it exceeds the width of the rectangle
                 text_surface = self.font.render(text_to_display, True, self.WHITE)
@@ -141,7 +146,7 @@ class Window:
                 label_surface = self.font.render(self.labels[i], True, self.WHITE)
                 self.screen.blit(label_surface, (35, self.HEIGHT - 145))
             else:
-                pygame.draw.rect(self.screen, self.WHITE, (30, self.text_field_offset + i * 100, width, 50), 2)
+                pygame.draw.rect(self.screen, self.isSelected(i), (30, self.text_field_offset + i * 100, width, 50), 2)
                 text_to_display = self.input_texts[i]
                 text_surface = self.font.render(text_to_display, True, self.WHITE)
                 self.screen.blit(text_surface, (35, self.text_field_offset + 10 + i * 100))
