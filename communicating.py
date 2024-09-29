@@ -83,7 +83,7 @@ class Communicator:
 
         else:
             self.state.nextStep(self.expense)
-            people_response = self.model.invoke([self.people_message, HumanMessage(content="Zarządzenie króla:\n"+self.expense+"\nObecny stan gry:\n"+str(self.state))])
+            people_response = self.model.invoke([self.people_message, HumanMessage(content="Zarządzenie króla:\n"+str(self.expense)+"\nObecny stan gry:\n"+str(self.state))])
             self.tour += 1
             return {
                 "people_response": people_response.content,
