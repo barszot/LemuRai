@@ -13,9 +13,11 @@ class Window:
         self.WHITE = (255, 255, 255)
         self.BLACK = (0, 0, 0)
         self.BLUE = (0, 100, 255)
-        self.GREEN = (0, 255, 0)  # Dodaj ten wiersz
+        self.GREEN = (0, 180, 0)  # Dodaj ten wiersz
+        self.RED = (180, 0, 0)  # Dodaj ten wiersz
 
         self.FONT_SIZE = 32
+        self.verdict_prompt = "Czy chcesz zmienić decyzję?"
 
         # Set up the display
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
@@ -41,8 +43,11 @@ class Window:
         self.active_index = 0  # Track which input field is active
         self.external_text = ""
         self.clock = pygame.time.Clock()
-        self.button_rect = pygame.Rect(700, 560, 100, 40)
+        self.button_rect = pygame.Rect(700, 550, 100, 40)  # Obniżenie przycisku "Zatwierdź"
+        self.yes_button = pygame.Rect(850, 550, 100, 40)    # Obniżenie przycisku "Tak"
+        self.no_button = pygame.Rect(980, 550, 100, 40)     # Obniżenie przycisku "Nie"
 
+            
         # Labels for each input field
         self.labels = ["Technologia", "Kultura", "Ochrona", "Zdrowie", "Prompt"]
         self.text_field_offset = 150
@@ -50,10 +55,11 @@ class Window:
         # Yes/No button handling
         self.show_yes_no_buttons = False  # Condition to show buttons
         self.yes_no_value = ""
-        self.yes_button = pygame.Rect(500, 500, 100, 40)
-        self.no_button = pygame.Rect(650, 500, 100, 40)
+
+
         self.adviser_response = ""
         self.people_response = ""
+        self.error_response = ""
         self.change_verdict = False
         self.prompt_scroll_offset = 0  # Add this in __init__
         self.scroll_offset = 0  # Nowa zmienna do śledzenia przewinięcia tekstu
@@ -95,7 +101,7 @@ class Window:
 
 
     def render_scrolling_text(self, text, position, color):
-        text = text.replace("\n", " ")
+        text = "          " + text.replace("\n", " ")
 
         """Render scrolling text with a background color."""
         # Drawing the background for the text
@@ -120,15 +126,20 @@ class Window:
     def render_responses(self):
         """Render responses for adviser and people."""
         bottom_position = (0, self.screen.get_height() - 50)  # Move to the bottom of the screen
+        self.scroll_speeds = 1
 
+        if self.error_response:
+            error_text = f"BŁĄD: {self.error_response}"
+            self.scroll_speeds = 0
+            self.render_scrolling_text(error_text, bottom_position, self.RED)
         # Render adviser response
-        if self.adviser_response:
+        elif self.adviser_response:
             adviser_text = f"Doradca: {self.adviser_response}"
             self.render_scrolling_text(adviser_text, bottom_position, self.BLUE)
 
         # Render people's response
-        if self.people_response:
-            people_text = f"Ludzie: {self.people_response}"
+        elif self.people_response:
+            people_text = f"Lemury: {self.people_response}"
             self.render_scrolling_text(people_text, bottom_position, self.GREEN)  # Dark green color
 
 
@@ -137,11 +148,23 @@ class Window:
         """Render the submit button."""
         pygame.draw.rect(self.screen, self.BLUE, self.button_rect)
         small_font = pygame.font.Font(None, 24)
-        button_text = small_font.render("Zatwierdź", True, self.WHITE)
+        button_text = small_font.render("Wyślij", True, self.WHITE)
         self.screen.blit(button_text, (self.button_rect.x + 11, self.button_rect.y + 11))
 
     def render_yes_no_buttons(self):
-        """Render 'Yes' and 'No' buttons."""
+        """Render 'Yes' and 'No' buttons with a border and a prompt."""
+        # Draw the border around the buttons
+        border_rect = pygame.Rect(self.yes_button.x - 10, self.yes_button.y - 30, 
+                                self.no_button.x + self.no_button.width - (self.yes_button.x - 10) + 20, 
+                                self.no_button.height + 50)
+        pygame.draw.rect(self.screen, self.WHITE, border_rect, 2)  # White border
+
+        # Draw the prompt above the buttons
+        prompt_surface = self.font.render(self.verdict_prompt, True, self.WHITE)
+        prompt_position = (border_rect.x + 10, border_rect.y - 30)
+        self.screen.blit(prompt_surface, prompt_position)
+
+        # Draw the buttons
         pygame.draw.rect(self.screen, self.BLUE, self.yes_button)
         pygame.draw.rect(self.screen, self.BLUE, self.no_button)
 
@@ -150,6 +173,7 @@ class Window:
         no_text = small_font.render("Nie", True, self.WHITE)
         self.screen.blit(yes_text, (self.yes_button.x + 35, self.yes_button.y + 10))
         self.screen.blit(no_text, (self.no_button.x + 35, self.no_button.y + 10))
+
 
 
     def handle_text_input(self, event):
@@ -183,6 +207,7 @@ class Window:
 
     def handle_submit(self):
         """Handle text submission."""
+        self.error_response = ""
         sum_of_expense = 0
         for ix, text in enumerate(self.input_texts):
             if ix < 4:
@@ -271,6 +296,7 @@ class Window:
     def throw_error(self, message):
         """Display error messages."""
         print(f"Błąd: {message}")
+        self.error_response = message
 
     def run(self):
         """Main loop of the game."""
