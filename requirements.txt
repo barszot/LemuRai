@@ -2,3 +2,4 @@ pygame
 langchain
 langchain_ollama
 langchain_core
+random

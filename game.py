@@ -85,10 +85,10 @@ class State:
         self.history_of_decisions = []
         self.history_of_events = []
 
-        self.hospitals = 15
-        self.culture = 15
+        self.hospitals = 40
+        self.culture = 40
         self.defense = 15
-        self.technology = 15
+        self.technology = 40
 
         self.coins = 100
 

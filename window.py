@@ -1,5 +1,6 @@
 import pygame
 import sys
+from random import randint
 from communicating import Communicator
 
 class Window:
@@ -361,7 +362,29 @@ class Window:
             
         hospitalSprite(self)
         cultureSprite(self)
-        technologySprite(self)      
+        technologySprite(self)
+
+        def lemurSprite(self): 
+            if self.communicator.state.population.getIsEpidemy():
+                return self.lemursick
+            else: 
+                return self.lemurraw
+        
+        population = self.communicator.state.population.getPopulation()
+        for i in range(population):
+            tree = randint(1, 3)
+            if tree == 1:
+                lemurw = self.WIDTH - randint(1000, 1050)
+                lemurh = self.HEIGHT - randint(400, 550)
+                self.screen.blit(pygame.transform.scale(lemurSprite(self), (self.bg_width//12, self.bg_height//6 )), (lemurw, lemurh))
+            elif tree == 2:
+                lemurw = self.WIDTH - randint(700, 760)
+                lemurh = self.HEIGHT - randint(420, 480)
+                self.screen.blit(pygame.transform.scale(lemurSprite(self), (self.bg_width//12, self.bg_height//6 )), (lemurw, lemurh))
+            elif tree == 3:
+                lemurw = self.WIDTH - randint(172, 220)
+                lemurh = self.HEIGHT - randint(470, 600)
+                self.screen.blit(pygame.transform.scale(lemurSprite(self), (self.bg_width//12, self.bg_height//6 )), ( lemurw, lemurh))
   
         
 
