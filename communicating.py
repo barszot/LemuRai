@@ -53,33 +53,12 @@ class Communicator:
                 Niech twoje wypowiedzi nie będą za długie. 3-5 zdań to dobra długość.
                 """ + rules)
         
-        self.king_message = SystemMessage(content="""
-                Jesteś śmieszkowatym królem lemurów. Reprezentujesz gracza i podsumowujesz jego decyzję w krótkich śmiesznych słowach.
-                Mimo pozornej lekkomyślności starasz się słuchać doradcy i dbać o poddanych. Twoje wypowiedzi to 1-2 zdania.
-                Wypowiadasz się JAKO GRACZ a nie o graczu!!!
-                """ + rules)
-        
         self.people_message = SystemMessage(content="""
                 Jesteś państwem lemurów, które reaguje na decyzje króla. Jesteś ludem! Jesteś poddanymi!
                 Pamiętaj że poddani to NIE JEST doradca króla. Poddani to oddzielny, "wieloosoby" asystent,
                 niepowiązany z doradcą
                 """ + rules)
 
-        self.calculator_message = SystemMessage(content=f"""
-        Użytkownik podaje w swojej wypowiedzi wydatki na każdy z czterech aspektów królestwa:
-        technologia, ochrona (przed klęskami żywiołowymi), szpitale, kultura.
-        Jeśli któryś aspekt nie zostanie wymieniony to znaczy że przeznaczono na niego zero monet
-        Aktualna liczba pieniędzy królestwa to: {self.state.coins}
-        Przerób jego wypowiedź na json o dokładnie takich kluczach :
-        {{
-            "technologia": liczba pieniędzy przeznaczonych na technologię (integer a nie string),
-            "kultura": liczba pieniędzy przeznaczonych na kulturę (integer a nie string),
-            "szpitale": liczba pieniędzy przeznaczonych na szpitale (integer a nie string),
-            "ochrona: liczba pieniędzy przeznaczonych na ochronę (przed klęskami żywiołowymi) (integer a nie string)
-        }}
-        Twoja odpowiedź ma zawierać TYLKO I WYŁĄCZNIE TAKI JSON (z dokładnie czterema kluczami), bez ŻADNYCH dodatkowych wartości!
-        Nie dopisuj "Oto przetworzony wynik" ani nic podobnego, ma być TYLKO JSON!
-        """)
         self.model = ChatOllama(model="llama3.1:8b", base_url="http://10.8.0.1:8080", keep_alive=1500)
         self.tour = 0
         self.verdict = ""
@@ -104,11 +83,9 @@ class Communicator:
 
         else:
             self.state.nextStep(self.expense)
-            king_response = self.model.invoke([self.king_message, HumanMessage(content="Wyraź decyzję gracza (poniżej) swoimi słowami\n" + self.verdict + "\nSpis wydatków:\n" + str(self.expense))])
-            people_response = self.model.invoke([self.people_message, HumanMessage(content="Zarządzenie króla:\n"+king_response.content+str(self.state))])
+            people_response = self.model.invoke([self.people_message, HumanMessage(content="Zarządzenie króla:\n"+self.verdict+"\nObecny stan gry:\n"+str(self.state))])
             self.tour += 1
             return {
-                "king_response": king_response.content,
                 "people_response": people_response.content,
             }
 

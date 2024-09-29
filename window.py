@@ -9,10 +9,12 @@ class Window:
         self.tour_state = 1
         self.communicator = Communicator()
         # Constants
-        self.WIDTH, self.HEIGHT = 1200, 600
+        self.WIDTH, self.HEIGHT = 1200, 700
         self.WHITE = (255, 255, 255)
         self.BLACK = (0, 0, 0)
         self.BLUE = (0, 100, 255)
+        self.GREEN = (0, 255, 0)  # Dodaj ten wiersz
+
         self.FONT_SIZE = 32
 
         # Set up the display
@@ -23,6 +25,14 @@ class Window:
         self.lemur_image = pygame.image.load("icons/lemur.png")
         self.lemur_image = pygame.transform.scale(self.lemur_image, (32, 32))
         pygame.display.set_icon(self.lemur_image)
+
+
+        # Load the other images
+        self.book_image = pygame.image.load("icons/book.png")
+        self.skull_image = pygame.image.load("icons/skull.png")
+        self.bacteria_image = pygame.image.load("icons/bacteria.png")
+        self.brain_image = pygame.image.load("icons/brain.png")
+
 
         # Font and variables
         self.font = pygame.font.Font(None, self.FONT_SIZE)
@@ -43,18 +53,85 @@ class Window:
         self.yes_button = pygame.Rect(500, 500, 100, 40)
         self.no_button = pygame.Rect(650, 500, 100, 40)
         self.adviser_response = ""
-        self.king_response = ""
         self.people_response = ""
         self.change_verdict = False
+        self.prompt_scroll_offset = 0  # Add this in __init__
+        self.scroll_offset = 0  # Nowa zmienna do śledzenia przewinięcia tekstu
+        self.scroll_speeds = 1  # Ustaw wartość numeryczną
+        self.scroll_offsets = 0  # Inicjalizacja offsetu
+        self.text_widths = {
+            "adviser": 0,
+            "people": 0,
+        }
+
+    def render_icon(self, icon, icon_position, count):
+        small_image = pygame.transform.scale(icon, (30, 30))
+        self.screen.blit(small_image, icon_position)
+        number_surface = self.font.render(str(count), True, self.WHITE)
+        self.screen.blit(number_surface, (icon_position[0] + 40, icon_position[1] + 5))
 
     def render_text_fields(self):
-        """Render the text input fields."""
+        """Render the text input fields with adjusted widths."""
         for i in range(len(self.input_texts)):
-            pygame.draw.rect(self.screen, self.WHITE, (30, self.text_field_offset + i * 100, 400, 50), 2)
-            text_surface = self.font.render(self.input_texts[i], True, self.WHITE)
+            width = 100 if i < 4 else 600  # Set width to 100 for the first four fields
+            pygame.draw.rect(self.screen, self.WHITE, (30, self.text_field_offset + i * 100, width, 50), 2)
+
+            # Determine the text to display based on the field
+            if i == 4:  # Special handling for the prompt field
+                text_to_display = self.input_texts[i][self.scroll_offset:]  # Apply scroll offset
+                # Truncate text if it exceeds the width of the rectangle
+                text_surface = self.font.render(text_to_display, True, self.WHITE)
+                max_text_width = width - 10  # Leave some padding
+                if text_surface.get_width() > max_text_width:
+                    # Only show the last part of the text if it's too long
+                    text_to_display = text_to_display[-max_text_width // self.font.size('a')[0]:]
+            else:
+                text_to_display = self.input_texts[i]
+
+            text_surface = self.font.render(text_to_display, True, self.WHITE)
             self.screen.blit(text_surface, (35, self.text_field_offset + 10 + i * 100))
             label_surface = self.font.render(self.labels[i], True, self.WHITE)
             self.screen.blit(label_surface, (35, self.text_field_offset - 25 + i * 100))
+
+
+    def render_scrolling_text(self, text, position, color):
+        text = text.replace("\n", " ")
+
+        """Render scrolling text with a background color."""
+        # Drawing the background for the text
+        background_rect = pygame.Rect(0, position[1], self.WIDTH, 50)  # Full width background
+        pygame.draw.rect(self.screen, color, background_rect)
+
+        # Create the text surface
+        text_surface = self.font.render(text, True, self.WHITE)
+        text_width = text_surface.get_width()
+        text_x_position = position[0] - self.scroll_offset
+
+        # Scroll the text
+        self.scroll_offset += self.scroll_speeds  # Increase offset
+
+        # Reset scrolling when text goes off the screen
+        if self.scroll_offset > text_width + self.WIDTH:
+            self.scroll_offset = 0
+
+        # Display the text
+        self.screen.blit(text_surface, (text_x_position, position[1] + 10))
+
+    def render_responses(self):
+        """Render responses for adviser and people."""
+        bottom_position = (0, self.screen.get_height() - 50)  # Move to the bottom of the screen
+
+        # Render adviser response
+        if self.adviser_response:
+            adviser_text = f"Doradca: {self.adviser_response}"
+            self.render_scrolling_text(adviser_text, bottom_position, self.BLUE)
+
+        # Render people's response
+        if self.people_response:
+            people_text = f"Ludzie: {self.people_response}"
+            self.render_scrolling_text(people_text, bottom_position, self.GREEN)  # Dark green color
+
+
 
     def render_button(self):
         """Render the submit button."""
@@ -73,6 +150,36 @@ class Window:
         no_text = small_font.render("Nie", True, self.WHITE)
         self.screen.blit(yes_text, (self.yes_button.x + 35, self.yes_button.y + 10))
         self.screen.blit(no_text, (self.no_button.x + 35, self.no_button.y + 10))
+
+
+    def handle_text_input(self, event):
+        """Handle text input and navigation."""
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_BACKSPACE:
+                # Usuwaj ostatni znak, jeśli pole tekstowe nie jest puste
+                if self.input_texts[self.active_index]:
+                    self.input_texts[self.active_index] = self.input_texts[self.active_index][:-1]
+                    self.scroll_offset = max(self.scroll_offset - 1, 0)  # Zmniejsz offset przy usuwaniu
+            elif event.key == pygame.K_RETURN:
+                self.handle_submit()
+            elif event.key == pygame.K_LEFT and self.active_index == 4:
+                # Przewiń tekst w lewo
+                if self.scroll_offset > 0:
+                    self.scroll_offset -= 1
+            elif event.key == pygame.K_RIGHT and self.active_index == 4:
+                # Przewiń tekst w prawo
+                if self.scroll_offset < len(self.input_texts[self.active_index]) - 30:  # Ustaw 30 na szerokość pola tekstowego
+                    self.scroll_offset += 1
+            else:
+                if self.active_index < len(self.input_texts):
+                    self.input_texts[self.active_index] += event.unicode
+                    if self.active_index == 4:  # Tylko dla pola "Prompt"
+                        # Aktualizuj scroll_offset, aby nie przekroczył długości tekstu
+                        if len(self.input_texts[4]) > 30:  # Ustaw 30 na długość widocznego tekstu
+                            self.scroll_offset = max(self.scroll_offset, len(self.input_texts[4]) - 30)
+
+
+
 
     def handle_submit(self):
         """Handle text submission."""
@@ -154,9 +261,8 @@ class Window:
                 }
             }
             com_result = self.communicator.gameStep(False, data)
-            self.king_response = com_result["king_response"]
+            self.adviser_response = ""
             self.people_response = com_result["people_response"]
-            print(self.king_response)
             print(self.people_response)
             # Reset input fields after the verdict processing
             self.input_texts = ["", "", "", "", ""]
@@ -200,13 +306,21 @@ class Window:
             # Fill the screen with black
             self.screen.fill(self.BLACK)
 
+            self.render_icon(self.lemur_image, (30, 30), 3)
+            self.render_icon(self.book_image, (30, 60), 3)
+            self.render_icon(self.skull_image, (90, 30), 3)
+            self.render_icon(self.bacteria_image, (90, 60), 3)
+            self.render_icon(self.brain_image, (150, 30), 3)
+
             # Render text fields and buttons
             self.render_text_fields()
             self.render_button()
-
+            self.render_responses()
             # Show Yes/No buttons if active
             if self.show_yes_no_buttons:
                 self.render_yes_no_buttons()
+            # Render icons
+
 
             # Update the display
             pygame.display.flip()
