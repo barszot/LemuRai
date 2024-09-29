@@ -244,21 +244,18 @@ class Window:
 
         com_result = self.communicator.gameStep(True, data)
         self.adviser_response = com_result["adviser_response"]
-        print(self.adviser_response)
 
         # Activate Yes/No buttons based on adviser response
         self.show_yes_no_buttons = True
 
     def handle_yes(self):
         """Handle 'Yes' button click."""
-        print("Wybrano TAK")
         self.show_yes_no_buttons = False
         self.yes_no_value = "tak"
         self.process_verdict()
 
     def handle_no(self):
         """Handle 'No' button click."""
-        print("Wybrano NIE")
         self.show_yes_no_buttons = False
         self.yes_no_value = "nie"
         self.process_verdict()
@@ -288,14 +285,12 @@ class Window:
             com_result = self.communicator.gameStep(False, data)
             self.adviser_response = ""
             self.people_response = com_result["people_response"]
-            print(self.people_response)
             # Reset input fields after the verdict processing
             self.input_texts = ["", "", "", "", ""]
             self.input_values = [0, 0, 0, 0, ""]
 
     def throw_error(self, message):
         """Display error messages."""
-        print(f"Błąd: {message}")
         self.error_response = message
 
     def run(self):
