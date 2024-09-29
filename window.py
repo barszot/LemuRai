@@ -122,7 +122,7 @@ class Window:
         display_height = display_info.current_h
 
         # Calculate the maximum size for the background image
-        max_width = display_width // 2  # Use half the display width
+        max_width = (display_width * 3 ) // 4  # Use half the display width
         max_height = display_height  # Use the full display height
 
         # Get the size of the background image
