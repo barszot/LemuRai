@@ -473,16 +473,16 @@ class Window:
             self.render_text_fields()
             self.render_button()
             self.render_responses()
-            # Show Yes/No buttons if active
-            if self.show_yes_no_buttons:
-                self.render_yes_no_buttons()
+
 
             # Render the background
             self.render_background("state1")
 
             #Render sprites
             self.render_sprites()
-
+            # Show Yes/No buttons if active
+            if self.show_yes_no_buttons:
+                self.render_yes_no_buttons()
             # Update the display
             pygame.display.flip()
             self.clock.tick(60)

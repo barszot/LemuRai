@@ -29,8 +29,7 @@ oraz punktów 'technologii' i 'kultury'.
 Rozgrywka wyglada tak:
 Gracz (człowiek), wpisuje jak przydzieli pieniądze w danej turze. Następnie doradca (komputer - chatbot), sprawdza czy liczba zainwestowanych pieniędzy nie przekracza
 tej w skarbcu. Jeśli jest okej, pomaga mu podjąć decyzję (na przykład doradza inwestycję w kulturę, czy zbudowanie ochronnego systemu przed wielką ulewą, edukując gracza).
-Następnie gracz może (ale nie musi), zmienić decyzję, i wtedy jest egzekwowana przez kod komputerowy gry. Chatbot generuje śmieszkowatą, krótką
-wypowiedź króla lemurów, która streszcza decyzję (np. że postanowił zainwestować sporo w technologię i trochę w kulturę, ale to ma być żartobliwie powiedziane).
+Następnie gracz może (ale nie musi), zmienić decyzję, i wtedy jest egzekwowana przez kod komputerowy gry.
 
 Na końcu tury poddani (także komputer), komentują decyzję króla oraz obecne zdarzenia. Na przykład jeśli dofinansował technologię której brakowało akurat pieniędzy, chwalą to.
 Jeśli była klęska żywiołowa a król nie zadbał o ochronę i sporo lemurów zginęło - są źli na króla. Jesli byla epidemia i mało lemurów zginęło dzięki szpitalom, doceniają wcześniejsze inwestycje w szpitale.
@@ -50,7 +49,7 @@ class Communicator:
                 aspektów królestwa. Nie wyświetlaj jsona ze stanem gry, po prostu opisuj go słownie, ale nie liczbami!
                 Z drugiej strony nie możesz wpaść w paraliż analityczny i jeśli intuicja podpowiada ci że decyzja króla jest
                 dobra, daj mu znać, że ma rację!
-                Niech twoje wypowiedzi nie będą za długie. 3-5 zdań to dobra długość.
+                Niech twoje wypowiedzi nie będą za długie. 2-4 proste zdania to dobra długość.
                 """ + rules)
         
         self.people_message = SystemMessage(content="""
@@ -83,7 +82,7 @@ class Communicator:
 
         else:
             self.state.nextStep(self.expense)
-            people_response = self.model.invoke([self.people_message, HumanMessage(content="Zarządzenie króla:\n"+self.expense+"\nObecny stan gry:\n"+str(self.state))])
+            people_response = self.model.invoke([self.people_message, HumanMessage(content="Zarządzenie króla:\n"+str(self.expense)+"\nObecny stan gry:\n"+str(self.state))])
             self.tour += 1
             return {
                 "people_response": people_response.content,
